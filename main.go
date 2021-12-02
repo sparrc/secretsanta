@@ -97,8 +97,14 @@ func main() {
 	}
 
 	for i := 0; i < len(names); i++ {
-		body := fmt.Sprintf("Hello %s!\n\nyour secret santa recipient is %s\n\nSanta\n*", names[i], names2[i])
-		subject := "Secret Santa"
+		body := fmt.Sprintf(`Hello %s!
+
+Your secret santa recipient is %s 🎁
+
+Merry christmas! 🎄
+Santa
+`, names[i], names2[i])
+		subject := "Secret Santa 🎅"
 		sendEmail(nameMap[names[i]], subject, body)
 	}
 }

@@ -110,6 +110,6 @@ Santa
 }
 
 func init() {
-	flag.StringVar(&configFile, "file", "config.test.json", "")
-	flag.StringVar(&from, "from", "", "")
+	flag.StringVar(&configFile, "file", "config.test.json", "Config file, mapping names of participants to their email addresses.")
+	flag.StringVar(&from, "from", "", "Email address to send the email from.")
 }

@@ -17,6 +17,7 @@ import (
 var (
 	configFile string
 	from       string
+	dryRun     bool
 )
 
 func noerr(err error) {
@@ -97,6 +98,10 @@ func main() {
 	}
 
 	for i := 0; i < len(names); i++ {
+		if dryRun {
+			fmt.Printf("%s (%s) 🎁-> %s\n", names[i], nameMap[names[i]], names2[i])
+			continue
+		}
 		body := fmt.Sprintf(`Hello %s!
 
 Your secret santa recipient is %s 🎁
@@ -112,4 +117,5 @@ Santa
 func init() {
 	flag.StringVar(&configFile, "file", "config.test.json", "Config file, mapping names of participants to their email addresses.")
 	flag.StringVar(&from, "from", "", "Email address to send the email from.")
+	flag.BoolVar(&dryRun, "dryrun", false, "Specify this flag to only print the emails, no emails will be sent.")
 }

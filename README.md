@@ -17,8 +17,11 @@ cat >./config.json <<EOF
 }
 EOF
 ```
-
-5. Run the program:
+5. Run a dryrun of the program (no emails sent or SES client created):
+```
+go run main.go -file config.json -from secretsanta@mydomain.com -dryrun
+```
+6. Run the program (🚨 emails will be sent! 🚨):
 ```
 go run main.go -file config.json -from secretsanta@mydomain.com
 ```

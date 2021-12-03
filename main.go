@@ -69,6 +69,8 @@ func sendEmail(recipient, subject, body string) {
 	out, err := svc.SendEmail(input)
 	noerr(err)
 	fmt.Printf("Sent email to %s, message ID: %s\n", recipient, *out.MessageId)
+	// by default SES limits users to one email per second, so sleep here to avoid hitting the limit
+	time.Sleep(500 * time.Millisecond)
 }
 
 func main() {

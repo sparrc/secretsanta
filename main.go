@@ -36,6 +36,13 @@ func anyMatches(a1, a2 []string) bool {
 }
 
 func sendEmail(recipient, subject, body string) {
+	if dryRun {
+		fmt.Printf("recipient: %s\n", recipient)
+		fmt.Printf("from:      %s\n", from)
+		fmt.Printf("subject:   %s\n", subject)
+		fmt.Printf("body:\n%s------------------------------------------------\n\n", body)
+		return
+	}
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("us-west-2")},
 	)
@@ -100,10 +107,6 @@ func main() {
 	}
 
 	for i := 0; i < len(names); i++ {
-		if dryRun {
-			fmt.Printf("%s (%s) 🎁-> %s\n", names[i], nameMap[names[i]], names2[i])
-			continue
-		}
 		body := fmt.Sprintf(`Hello %s!
 
 Your secret santa recipient is %s 🎁

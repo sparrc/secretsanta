@@ -86,36 +86,39 @@ func main() {
 	file, err := os.ReadFile(configFile)
 	noerr(err)
 
-	nameMap := map[string]string{}
-	err = json.Unmarshal(file, &nameMap)
+	// mapping of names of participants to their email
+	nameEmailMap := map[string]string{}
+	err = json.Unmarshal(file, &nameEmailMap)
 	noerr(err)
-	names := []string{}
-	names2 := []string{}
-	for k := range nameMap {
-		names = append(names, k)
-		names2 = append(names2, k)
+	giftGivers := []string{}
+	giftRecipients := []string{}
+	for k := range nameEmailMap {
+		giftGivers = append(giftGivers, k)
+		giftRecipients = append(giftRecipients, k)
 	}
 
 	for true {
-		rand.Shuffle(len(names2), func(i, j int) {
-			names2[i], names2[j] = names2[j], names2[i]
+		// keep shuffling the recipients list until none of the 'recipients' match
+		// the 'givers'
+		rand.Shuffle(len(giftRecipients), func(i, j int) {
+			giftRecipients[i], giftRecipients[j] = giftRecipients[j], giftRecipients[i]
 		})
-		if anyMatches(names, names2) {
+		if anyMatches(giftGivers, giftRecipients) {
 			continue
 		}
 		break
 	}
 
-	for i := 0; i < len(names); i++ {
+	for i := 0; i < len(giftGivers); i++ {
 		body := fmt.Sprintf(`Hello %s!
 
 Your secret santa recipient is %s 🎁
 
 Merry christmas! 🎄
 Santa
-`, names[i], names2[i])
+`, giftGivers[i], giftRecipients[i])
 		subject := "Secret Santa 🎅"
-		sendEmail(nameMap[names[i]], subject, body)
+		sendEmail(nameEmailMap[giftGivers[i]], subject, body)
 	}
 }
 

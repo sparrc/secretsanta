@@ -11,9 +11,11 @@ Generate a secret santa matchup and email the participants!
 ```
 cat >./config.json <<EOF
 {
-    "Peppa": "peppapig@hotmail.com",
-    "Daddy": "daddypig@gmail.com",
-    "Mummy": "mummypig@yahoo.com"
+    "Peppa Pig":  "peppapig@hotmail.com",
+    "George":     "georgepig@gmail.com",
+    "Daddy Pig":  "daddypig@gmail.com",
+    "Mummy Pig":  "mummypig@yahoo.com",
+    "Suzy Sheep": "suzy@hotmail.com"
 }
 EOF
 ```

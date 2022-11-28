@@ -26,15 +26,26 @@ func noerr(err error) {
 	}
 }
 
-func anyMatches(a1, a2 []string) bool {
-	for i := 0; i < len(a1); i++ {
-		if strings.EqualFold(a1[i], a2[i]) {
+// anyMatches returns true if any gift givers are found to have been matched to
+// themselves or to their partner.
+func anyMatches(givers, recipients []string, nameEmailCoupleMap map[string][]string) bool {
+	for i := 0; i < len(givers); i++ {
+		// did the matching select "themselves"?
+		if strings.EqualFold(givers[i], recipients[i]) {
+			return true
+		}
+		// did the matching select the giver's partner?
+		partner := nameEmailCoupleMap[givers[i]][1]
+		if strings.EqualFold(recipients[i], partner) {
 			return true
 		}
 	}
+	// no matches of givers gifting themselves or partners found, return false.
 	return false
 }
 
+// sendEmail sends an email to the given recipient (email address), with the given
+// subject and message body.
 func sendEmail(recipient, subject, body string) {
 	if dryRun {
 		fmt.Printf("recipient: %s\n", recipient)
@@ -86,13 +97,13 @@ func main() {
 	file, err := os.ReadFile(configFile)
 	noerr(err)
 
-	// mapping of names of participants to their email
-	nameEmailMap := map[string]string{}
-	err = json.Unmarshal(file, &nameEmailMap)
+	// mapping of names of participants to their email and 'couple'
+	nameEmailCoupleMap := map[string][]string{}
+	err = json.Unmarshal(file, &nameEmailCoupleMap)
 	noerr(err)
 	giftGivers := []string{}
 	giftRecipients := []string{}
-	for k := range nameEmailMap {
+	for k := range nameEmailCoupleMap {
 		giftGivers = append(giftGivers, k)
 		giftRecipients = append(giftRecipients, k)
 	}
@@ -103,7 +114,7 @@ func main() {
 		rand.Shuffle(len(giftRecipients), func(i, j int) {
 			giftRecipients[i], giftRecipients[j] = giftRecipients[j], giftRecipients[i]
 		})
-		if anyMatches(giftGivers, giftRecipients) {
+		if anyMatches(giftGivers, giftRecipients, nameEmailCoupleMap) {
 			continue
 		}
 		break
@@ -118,7 +129,8 @@ Merry christmas! 🎄
 Santa
 `, giftGivers[i], giftRecipients[i])
 		subject := "Secret Santa 🎅"
-		sendEmail(nameEmailMap[giftGivers[i]], subject, body)
+		giverEmail := nameEmailCoupleMap[giftGivers[i]][0]
+		sendEmail(giverEmail, subject, body)
 	}
 }
 

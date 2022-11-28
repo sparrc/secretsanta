@@ -9,13 +9,16 @@ Generate a secret santa matchup and email the participants!
 3. Setup AWS credential access.
 4. Create a config file (recommended that you try with some test email addresses first):
 ```
+# first element of the list is the email address of the person.
+# second element of the list is the person's "couple" if they have one, this ensures
+#   that couples are not matched together.
 cat >./config.json <<EOF
 {
-    "Peppa Pig":  "peppapig@hotmail.com",
-    "George":     "georgepig@gmail.com",
-    "Daddy Pig":  "daddypig@gmail.com",
-    "Mummy Pig":  "mummypig@yahoo.com",
-    "Suzy Sheep": "suzy@hotmail.com"
+    "Peppa Pig":  ["peppapig@hotmail.com", ""],
+    "George":     ["georgepig@gmail.com", ""],
+    "Daddy Pig":  ["daddypig@gmail.com", "Mummy Pig"],
+    "Mummy Pig":  ["mummypig@yahoo.com", "Daddy Pig"],
+    "Suzy Sheep": ["suzy@hotmail.com", ""]
 }
 EOF
 ```

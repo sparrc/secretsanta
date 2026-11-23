@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,9 +21,13 @@ var (
 	configFile string
 	from       string
 	dryRun     bool
+	// auditDir is where a copy of each sent email is written, so that matches
+	// can be looked up later. It is a var so tests can point it elsewhere.
+	auditDir = ".audit"
 )
 
 type email struct {
+	name      string
 	recipient string
 	subject   string
 	body      string
@@ -65,9 +70,74 @@ func anyMatches(givers, recipients []string, nameEmailCoupleMap map[string][]str
 		if strings.EqualFold(recipients[i], partner) {
 			return true
 		}
+		// did the matching miss the giver's fixed recipient?
+		if fixed := fixedRecipient(nameEmailCoupleMap, givers[i]); fixed != "" && !strings.EqualFold(recipients[i], fixed) {
+			return true
+		}
 	}
 	// no matches of givers gifting themselves or partners found, return false.
 	return false
+}
+
+// fixedRecipient returns the optional third config element: the person the
+// giver must be matched to, or "" if there is none.
+func fixedRecipient(nameEmailCoupleMap map[string][]string, giver string) string {
+	if len(nameEmailCoupleMap[giver]) < 3 {
+		return ""
+	}
+	return nameEmailCoupleMap[giver][2]
+}
+
+// validateFixed checks that every fixed match can be satisfied. Without this,
+// an impossible rule would make the shuffle loop in gatherEmails run forever.
+func validateFixed(nameEmailCoupleMap map[string][]string) error {
+	fixedBy := map[string]string{}
+	for giver, entry := range nameEmailCoupleMap {
+		fixed := fixedRecipient(nameEmailCoupleMap, giver)
+		if fixed == "" {
+			continue
+		}
+		found := false
+		for name := range nameEmailCoupleMap {
+			if strings.EqualFold(name, fixed) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("%s is fixed to %q, who is not in the config", giver, fixed)
+		}
+		if strings.EqualFold(giver, fixed) {
+			return fmt.Errorf("%s is fixed to themselves", giver)
+		}
+		if strings.EqualFold(entry[1], fixed) {
+			return fmt.Errorf("%s is fixed to their partner %s", giver, fixed)
+		}
+		key := strings.ToLower(fixed)
+		if other, ok := fixedBy[key]; ok {
+			return fmt.Errorf("%s and %s are both fixed to %s", other, giver, fixed)
+		}
+		fixedBy[key] = giver
+	}
+	return nil
+}
+
+// auditPath returns auditDir/<name>.<year>.txt, or auditDir/<name>.dryrun.<year>.txt
+// in dryrun mode. Dryruns get their own file so they never overwrite real matches,
+// and the year keeps previous years' matches around.
+func auditPath(name string) string {
+	kind := ""
+	if dryRun {
+		kind = ".dryrun"
+	}
+	return filepath.Join(auditDir, fmt.Sprintf("%s%s.%d.txt", name, kind, time.Now().Year()))
+}
+
+// writeAudit saves a copy of the email to the giver's audit file.
+func writeAudit(e email) {
+	noerr(os.MkdirAll(auditDir, 0o700))
+	content := fmt.Sprintf("recipient: %s\nfrom:      %s\nsubject:   %s\nbody:\n%s", e.recipient, from, e.subject, e.body)
+	noerr(os.WriteFile(auditPath(e.name), []byte(content), 0o600))
 }
 
 // sendEmail sends an email to the given recipient (email address), with the given
@@ -78,6 +148,7 @@ func sendEmail(ctx context.Context, client SESEmailSender, e email) {
 		fmt.Printf("from:      %s\n", from)
 		fmt.Printf("subject:   %s\n", e.subject)
 		fmt.Printf("body:\n%s------------------------------------------------\n\n", e.body)
+		writeAudit(e)
 		return
 	}
 
@@ -104,6 +175,7 @@ func sendEmail(ctx context.Context, client SESEmailSender, e email) {
 	out, err := client.SendEmail(ctx, input)
 	noerr(err)
 	fmt.Printf("Sent email to %s, message ID: %s\n", e.recipient, *out.MessageId)
+	writeAudit(e)
 	// by default SES limits users to one email per second, so sleep here to avoid hitting the limit
 	time.Sleep(500 * time.Millisecond)
 }
@@ -113,6 +185,7 @@ func gatherEmails(configFile []byte) []email {
 	nameEmailCoupleMap := map[string][]string{}
 	err := json.Unmarshal(configFile, &nameEmailCoupleMap)
 	noerr(err)
+	noerr(validateFixed(nameEmailCoupleMap))
 	giftGivers := []string{}
 	giftRecipients := []string{}
 	for k := range nameEmailCoupleMap {
@@ -144,6 +217,7 @@ Santa
 		subject := "Secret Santa 🎅"
 		giverEmail := nameEmailCoupleMap[giftGivers[i]][0]
 		emails = append(emails, email{
+			name:      giftGivers[i],
 			recipient: giverEmail,
 			subject:   subject,
 			body:      body,

@@ -12,9 +12,11 @@ Generate a secret santa matchup and email the participants!
 # first element of the list is the email address of the person.
 # second element of the list is the person's "couple" if they have one, this ensures
 #   that couples are not matched together.
+# third element (optional) FIXES the person's match: they will always be
+#   assigned the named person. Leave it out or set it to "" for a random match.
 cat >./config.json <<EOF
 {
-    "Peppa Pig":  ["peppapig@hotmail.com", ""],
+    "Peppa Pig":  ["peppapig@hotmail.com", "", "George"],
     "George":     ["georgepig@gmail.com", ""],
     "Daddy Pig":  ["daddypig@gmail.com", "Mummy Pig"],
     "Mummy Pig":  ["mummypig@yahoo.com", "Daddy Pig"],
@@ -30,3 +32,5 @@ go run main.go -file config.json -from secretsanta@mydomain.com -dryrun
 ```
 go run main.go -file config.json -from secretsanta@mydomain.com
 ```
+
+A copy of each sent email is written to `.audit/<name>.<year>.txt` (for example `.audit/Nuria.2026.txt`), so you can check who somebody has later. Dryruns write to `.audit/<name>.dryrun.<year>.txt` instead, so they never overwrite the real matches.

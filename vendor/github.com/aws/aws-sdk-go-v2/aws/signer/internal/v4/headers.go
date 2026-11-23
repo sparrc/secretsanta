@@ -4,10 +4,11 @@ package v4
 var IgnoredHeaders = Rules{
 	ExcludeList{
 		MapRule{
-			"Authorization":   struct{}{},
-			"User-Agent":      struct{}{},
-			"X-Amzn-Trace-Id": struct{}{},
-			"Expect":          struct{}{},
+			"Authorization":     struct{}{},
+			"User-Agent":        struct{}{},
+			"X-Amzn-Trace-Id":   struct{}{},
+			"Expect":            struct{}{},
+			"Transfer-Encoding": struct{}{},
 		},
 	},
 }
@@ -56,6 +57,10 @@ var RequiredSignedHeaders = Rules{
 			"X-Amz-Content-Sha256":                                        struct{}{},
 			"X-Amz-Tagging":                                               struct{}{},
 		},
+	},
+	InclusiveRules{
+		Patterns{"X-Amz-Checksum-"},
+		ExcludeList{Patterns{"X-Amz-Checksum-Mode"}},
 	},
 	Patterns{"X-Amz-Object-Lock-"},
 	Patterns{"X-Amz-Meta-"},

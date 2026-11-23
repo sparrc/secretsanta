@@ -4,19 +4,18 @@ package sts
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	"github.com/aws/aws-sdk-go-v2/service/sts/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/sts/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns a set of temporary security credentials that you can use to access
 // Amazon Web Services resources. These temporary credentials consist of an access
 // key ID, a secret access key, and a security token. Typically, you use AssumeRole
 // within your account or for cross-account access. For a comparison of AssumeRole
-// with other API operations that produce temporary credentials, see [Requesting Temporary Security Credentials]and [Comparing the Amazon Web Services STS API operations] in the
+// with other API operations that produce temporary credentials, see [Requesting Temporary Security Credentials]and [Compare STS credentials] in the
 // IAM User Guide.
 //
 // # Permissions
@@ -26,16 +25,16 @@ import (
 // cannot call the Amazon Web Services STS GetFederationToken or GetSessionToken
 // API operations.
 //
-// (Optional) You can pass inline or managed [session policies] to this operation. You can pass a
-// single JSON policy document to use as an inline session policy. You can also
-// specify up to 10 managed policy Amazon Resource Names (ARNs) to use as managed
-// session policies. The plaintext that you use for both inline and managed session
-// policies can't exceed 2,048 characters. Passing policies to this operation
-// returns new temporary credentials. The resulting session's permissions are the
-// intersection of the role's identity-based policy and the session policies. You
-// can use the role's temporary credentials in subsequent Amazon Web Services API
-// calls to access resources in the account that owns the role. You cannot use
-// session policies to grant more permissions than those allowed by the
+// (Optional) You can pass inline or managed session policies to this operation.
+// You can pass a single JSON policy document to use as an inline session policy.
+// You can also specify up to 10 managed policy Amazon Resource Names (ARNs) to use
+// as managed session policies. The plaintext that you use for both inline and
+// managed session policies can't exceed 2,048 characters. Passing policies to this
+// operation returns new temporary credentials. The resulting session's permissions
+// are the intersection of the role's identity-based policy and the session
+// policies. You can use the role's temporary credentials in subsequent Amazon Web
+// Services API calls to access resources in the account that owns the role. You
+// cannot use session policies to grant more permissions than those allowed by the
 // identity-based policy of the role that is being assumed. For more information,
 // see [Session Policies]in the IAM User Guide.
 //
@@ -104,10 +103,9 @@ import (
 // [Session Policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
 // [Passing Session Tags in STS]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html
 // [Chaining Roles with Session Tags]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html#id_session-tags_role-chaining
-// [Comparing the Amazon Web Services STS API operations]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison
-// [session policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
 // [IAM Policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html
 // [Requesting Temporary Security Credentials]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html
+// [Compare STS credentials]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_sts-comparison.html
 // [Tutorial: Using Tags for Attribute-Based Access Control]: https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_attribute-based-access-control.html
 func (c *Client) AssumeRole(ctx context.Context, params *AssumeRoleInput, optFns ...func(*Options)) (*AssumeRoleOutput, error) {
 	if params == nil {
@@ -141,9 +139,17 @@ type AssumeRoleInput struct {
 	// the temporary security credentials will expose the role session name to the
 	// external account in their CloudTrail logs.
 	//
+	// For security purposes, administrators can view this field in [CloudTrail logs] to help identify
+	// who performed an action in Amazon Web Services. Your administrator might require
+	// that you specify your user name as the session name when you assume the role.
+	// For more information, see [sts:RoleSessionName]sts:RoleSessionName .
+	//
 	// The regex used to validate this parameter is a string of characters consisting
 	// of upper- and lower-case alphanumeric characters with no spaces. You can also
-	// include underscores or any of the following characters: =,.@-
+	// include underscores or any of the following characters: +=,.@-
+	//
+	// [CloudTrail logs]: https://docs.aws.amazon.com/IAM/latest/UserGuide/cloudtrail-integration.html#cloudtrail-integration_signin-tempcreds
+	// [sts:RoleSessionName]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_iam-condition-keys.html#ck_rolesessionname
 	//
 	// This member is required.
 	RoleSessionName *string
@@ -163,7 +169,7 @@ type AssumeRoleInput struct {
 	// 43200 seconds (12 hours), depending on the maximum session duration setting for
 	// your role. However, if you assume a role using role chaining and provide a
 	// DurationSeconds parameter value greater than one hour, the operation fails. To
-	// learn how to view the maximum value for your role, see [View the Maximum Session Duration Setting for a Role]in the IAM User Guide.
+	// learn how to view the maximum value for your role, see [Update the maximum session duration for a role].
 	//
 	// By default, the value is set to 3600 seconds.
 	//
@@ -173,7 +179,7 @@ type AssumeRoleInput struct {
 	// parameter that specifies the maximum length of the console session. For more
 	// information, see [Creating a URL that Enables Federated Users to Access the Amazon Web Services Management Console]in the IAM User Guide.
 	//
-	// [View the Maximum Session Duration Setting for a Role]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session
+	// [Update the maximum session duration for a role]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_update-role-settings.html#id_roles_update-session-duration
 	// [Creating a URL that Enables Federated Users to Access the Amazon Web Services Management Console]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html
 	DurationSeconds *int32
 
@@ -189,10 +195,16 @@ type AssumeRoleInput struct {
 	//
 	// The regex used to validate this parameter is a string of characters consisting
 	// of upper- and lower-case alphanumeric characters with no spaces. You can also
-	// include underscores or any of the following characters: =,.@:/-
+	// include underscores or any of the following characters: +=,.@:\/-
 	//
 	// [How to Use an External ID When Granting Access to Your Amazon Web Services Resources to a Third Party]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
 	ExternalId *string
+
+	// The minimum size, in bytes, of the session token that STS issues for the
+	// request. STS increases the session token to at least this size, regardless of
+	// its actual content. The value must not exceed 4,096 bytes. When set to 0 or not
+	// specified, the session token size is unchanged.
+	MinimumSessionTokenSize *int32
 
 	// An IAM policy in JSON format that you want to use as an inline session policy.
 	//
@@ -211,14 +223,10 @@ type AssumeRoleInput struct {
 	// \u00FF). It can also include the tab (\u0009), linefeed (\u000A), and carriage
 	// return (\u000D) characters.
 	//
-	// An Amazon Web Services conversion compresses the passed inline session policy,
-	// managed policy ARNs, and session tags into a packed binary format that has a
-	// separate limit. Your request can fail for this limit even if your plaintext
-	// meets the other requirements. The PackedPolicySize response element indicates
-	// by percentage how close the policies and tags for your request are to the upper
-	// size limit.
+	// For more information about role session permissions, see [Session policies].
 	//
 	// [Session Policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
+	// [Session policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
 	Policy *string
 
 	// The Amazon Resource Names (ARNs) of the IAM managed policies that you want to
@@ -229,13 +237,6 @@ type AssumeRoleInput struct {
 	// However, the plaintext that you use for both inline and managed session policies
 	// can't exceed 2,048 characters. For more information about ARNs, see [Amazon Resource Names (ARNs) and Amazon Web Services Service Namespaces]in the
 	// Amazon Web Services General Reference.
-	//
-	// An Amazon Web Services conversion compresses the passed inline session policy,
-	// managed policy ARNs, and session tags into a packed binary format that has a
-	// separate limit. Your request can fail for this limit even if your plaintext
-	// meets the other requirements. The PackedPolicySize response element indicates
-	// by percentage how close the policies and tags for your request are to the upper
-	// size limit.
 	//
 	// Passing policies to this operation returns new temporary credentials. The
 	// resulting session's permissions are the intersection of the role's
@@ -269,14 +270,14 @@ type AssumeRoleInput struct {
 	//
 	// The regex used to validate this parameter is a string of characters consisting
 	// of upper- and lower-case alphanumeric characters with no spaces. You can also
-	// include underscores or any of the following characters: =,.@-
+	// include underscores or any of the following characters: +=/:,.@-
 	SerialNumber *string
 
 	// The source identity specified by the principal that is calling the AssumeRole
-	// operation.
+	// operation. The source identity value persists across [chained role]sessions.
 	//
 	// You can require users to specify a source identity when they assume a role. You
-	// do this by using the sts:SourceIdentity condition key in a role trust policy.
+	// do this by using the [sts:SourceIdentity]sts:SourceIdentity condition key in a role trust policy.
 	// You can use source identity information in CloudTrail logs to determine who took
 	// actions with a role. You can use the aws:SourceIdentity condition key to
 	// further control access to Amazon Web Services resources based on the value of
@@ -285,11 +286,13 @@ type AssumeRoleInput struct {
 	//
 	// The regex used to validate this parameter is a string of characters consisting
 	// of upper- and lower-case alphanumeric characters with no spaces. You can also
-	// include underscores or any of the following characters: =,.@-. You cannot use a
+	// include underscores or any of the following characters: +=,.@-. You cannot use a
 	// value that begins with the text aws: . This prefix is reserved for Amazon Web
 	// Services internal use.
 	//
+	// [chained role]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html#iam-term-role-chaining
 	// [Monitor and control actions taken with assumed roles]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_control-access_monitor.html
+	// [sts:SourceIdentity]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html#condition-keys-sourceidentity
 	SourceIdentity *string
 
 	// A list of session tags that you want to pass. Each session tag consists of a
@@ -299,13 +302,6 @@ type AssumeRoleInput struct {
 	// This parameter is optional. You can pass up to 50 session tags. The plaintext
 	// session tag keys can’t exceed 128 characters, and the values can’t exceed 256
 	// characters. For these and additional limits, see [IAM and STS Character Limits]in the IAM User Guide.
-	//
-	// An Amazon Web Services conversion compresses the passed inline session policy,
-	// managed policy ARNs, and session tags into a packed binary format that has a
-	// separate limit. Your request can fail for this limit even if your plaintext
-	// meets the other requirements. The PackedPolicySize response element indicates
-	// by percentage how close the policies and tags for your request are to the upper
-	// size limit.
 	//
 	// You can pass a session tag with the same key as a tag that is already attached
 	// to the role. When you do, session tags override a role tag with the same key.
@@ -342,8 +338,8 @@ type AssumeRoleInput struct {
 	// a tag key as transitive, the corresponding key and value passes to subsequent
 	// sessions in a role chain. For more information, see [Chaining Roles with Session Tags]in the IAM User Guide.
 	//
-	// This parameter is optional. When you set session tags as transitive, the
-	// session policy and session tags packed binary limit is not affected.
+	// This parameter is optional. The transitive status of a session tag does not
+	// impact its packed binary size.
 	//
 	// If you choose not to specify a transitive tag key, then no tags are passed from
 	// this session to any subsequent sessions.
@@ -352,6 +348,54 @@ type AssumeRoleInput struct {
 	TransitiveTagKeys []string
 
 	noSmithyDocumentSerde
+}
+
+func (v *AssumeRoleInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.AssumeRoleRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *AssumeRoleInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DurationSeconds != nil {
+		s.WriteInt32(schemas.AssumeRoleRequest_DurationSeconds, *v.DurationSeconds)
+	}
+	if v.ExternalId != nil {
+		s.WriteString(schemas.AssumeRoleRequest_ExternalId, *v.ExternalId)
+	}
+	if v.MinimumSessionTokenSize != nil {
+		s.WriteInt32(schemas.AssumeRoleRequest_MinimumSessionTokenSize, *v.MinimumSessionTokenSize)
+	}
+	if v.Policy != nil {
+		s.WriteString(schemas.AssumeRoleRequest_Policy, *v.Policy)
+	}
+	if v.PolicyArns != nil {
+		serializepolicyDescriptorListType(s, schemas.AssumeRoleRequest_PolicyArns, v.PolicyArns)
+	}
+	if v.ProvidedContexts != nil {
+		serializeProvidedContextsListType(s, schemas.AssumeRoleRequest_ProvidedContexts, v.ProvidedContexts)
+	}
+	if v.RoleArn != nil {
+		s.WriteString(schemas.AssumeRoleRequest_RoleArn, *v.RoleArn)
+	}
+	if v.RoleSessionName != nil {
+		s.WriteString(schemas.AssumeRoleRequest_RoleSessionName, *v.RoleSessionName)
+	}
+	if v.SerialNumber != nil {
+		s.WriteString(schemas.AssumeRoleRequest_SerialNumber, *v.SerialNumber)
+	}
+	if v.SourceIdentity != nil {
+		s.WriteString(schemas.AssumeRoleRequest_SourceIdentity, *v.SourceIdentity)
+	}
+	if v.Tags != nil {
+		serializetagListType(s, schemas.AssumeRoleRequest_Tags, v.Tags)
+	}
+	if v.TokenCode != nil {
+		s.WriteString(schemas.AssumeRoleRequest_TokenCode, *v.TokenCode)
+	}
+	if v.TransitiveTagKeys != nil {
+		serializetagKeyListType(s, schemas.AssumeRoleRequest_TransitiveTagKeys, v.TransitiveTagKeys)
+	}
 }
 
 // Contains the response to a successful AssumeRole request, including temporary Amazon Web
@@ -372,11 +416,21 @@ type AssumeRoleOutput struct {
 	// strongly recommend that you make no assumptions about the maximum size.
 	Credentials *types.Credentials
 
-	// A percentage value that indicates the packed size of the session policies and
-	// session tags combined passed in the request. The request fails if the packed
-	// size is greater than 100 percent, which means the policies and tags exceeded the
-	// allowed space.
+	// The percentage (0-100) of the maximum allowed session token size that the
+	// returned session token consumes.
+	//
+	// This field is deprecated. Use SessionTokenUtilization instead.
+	//
+	// Deprecated: Deprecated. Replaced by SessionTokenUtilization.
 	PackedPolicySize *int32
+
+	// The size, in bytes, of the session token returned in the Credentials for this
+	// response.
+	SessionTokenSize *int32
+
+	// The percentage (0-100) of the maximum allowed session token size that the
+	// returned session token consumes.
+	SessionTokenUtilization *int32
 
 	// The source identity specified by the principal that is calling the AssumeRole
 	// operation.
@@ -402,77 +456,82 @@ type AssumeRoleOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *AssumeRoleOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.AssumeRoleResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *AssumeRoleOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AssumedRoleUser != nil {
+		s.WriteStruct(schemas.AssumeRoleResponse_AssumedRoleUser)
+		v.AssumedRoleUser.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Credentials != nil {
+		s.WriteStruct(schemas.AssumeRoleResponse_Credentials)
+		v.Credentials.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.PackedPolicySize != nil {
+		s.WriteInt32(schemas.AssumeRoleResponse_PackedPolicySize, *v.PackedPolicySize)
+	}
+	if v.SessionTokenSize != nil {
+		s.WriteInt32(schemas.AssumeRoleResponse_SessionTokenSize, *v.SessionTokenSize)
+	}
+	if v.SessionTokenUtilization != nil {
+		s.WriteInt32(schemas.AssumeRoleResponse_SessionTokenUtilization, *v.SessionTokenUtilization)
+	}
+	if v.SourceIdentity != nil {
+		s.WriteString(schemas.AssumeRoleResponse_SourceIdentity, *v.SourceIdentity)
+	}
+}
+func (v *AssumeRoleOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.AssumeRoleResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.AssumeRoleResponse_AssumedRoleUser:
+			v.AssumedRoleUser = &types.AssumedRoleUser{}
+			return v.AssumedRoleUser.Deserialize(d)
+		case schemas.AssumeRoleResponse_Credentials:
+			v.Credentials = &types.Credentials{}
+			return v.Credentials.Deserialize(d)
+		case schemas.AssumeRoleResponse_PackedPolicySize:
+			v.PackedPolicySize = new(int32)
+			return d.ReadInt32(schemas.AssumeRoleResponse_PackedPolicySize, v.PackedPolicySize)
+		case schemas.AssumeRoleResponse_SessionTokenSize:
+			v.SessionTokenSize = new(int32)
+			return d.ReadInt32(schemas.AssumeRoleResponse_SessionTokenSize, v.SessionTokenSize)
+		case schemas.AssumeRoleResponse_SessionTokenUtilization:
+			v.SessionTokenUtilization = new(int32)
+			return d.ReadInt32(schemas.AssumeRoleResponse_SessionTokenUtilization, v.SessionTokenUtilization)
+		case schemas.AssumeRoleResponse_SourceIdentity:
+			v.SourceIdentity = new(string)
+			return d.ReadString(schemas.AssumeRoleResponse_SourceIdentity, v.SourceIdentity)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationAssumeRoleMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.AssumeRole, schemas.AssumeRoleRequest, schemas.AssumeRoleResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Serialize.Add(&awsAwsquery_serializeOpAssumeRole{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.AssumeRole, schemas.AssumeRoleRequest, schemas.AssumeRoleResponse), output: &AssumeRoleOutput{}}, middleware.After); err != nil {
 		return err
-	}
-	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpAssumeRole{}, middleware.After)
-	if err != nil {
-		return err
-	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "AssumeRole"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
+	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
-	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpAssumeRoleValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opAssumeRole(options.Region), middleware.Before); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -487,27 +546,10 @@ func (c *Client) addOperationAssumeRoleMiddlewares(stack *middleware.Stack, opti
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newServiceMetadataMiddleware_opAssumeRole(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "AssumeRole",
-	}
 }
 
 // PresignAssumeRole is used to generate a presigned HTTP Request which contains

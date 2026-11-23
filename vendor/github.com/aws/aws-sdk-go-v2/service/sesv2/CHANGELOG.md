@@ -1,3 +1,479 @@
+# v1.80.0 (2026-11-18)
+
+* **Feature**: This release adds support for Spillover Routing in Amazon SES.
+
+# v1.79.9 (2026-11-10)
+
+* **Dependency Update**: Update to smithy-go v1.28.9.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.79.8 (2026-11-06)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.79.7 (2026-11-05)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.79.6 (2026-11-04)
+
+* **Dependency Update**: Update to smithy-go v1.28.8.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.79.5 (2026-10-30)
+
+* **Bug Fix**: Fix malformed JSON when serializing nil lists or maps in union members, map values, and list elements.
+
+# v1.79.4 (2026-10-27)
+
+* **Dependency Update**: Update to smithy-go v1.28.7.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.79.3 (2026-10-22)
+
+* **Bug Fix**: Update smithy-go to v1.28.6
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.79.2 (2026-10-19)
+
+* **Bug Fix**: Allow lists with null values to deserialize into its zero value instead of failing
+
+# v1.79.1 (2026-10-09.2)
+
+* **Dependency Update**: Update to smithy-go v1.28.5.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.79.0 (2026-10-08)
+
+* **Feature**: Enable schema-based (de)serialization for this service.
+* **Documentation**: SESV2 DEED - Documentation Update
+* **Dependency Update**: Update to smithy-go v1.28.4.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.78.0 (2026-10-06)
+
+* **Feature**: Enable schema-based (de)serialization for this service.
+
+# v1.77.0 (2026-09-29)
+
+* **Feature**: Added Filter support for ListTenants, ListEmailIdentities, and ListConfigurationSets APIs.
+* **Feature**: Enable schema-based (de)serialization for this service.
+
+# v1.76.0 (2026-09-24)
+
+* **Feature**: Enable schema-based (de)serialization for this service.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.75.0 (2026-09-21)
+
+* **Feature**: Enable schema-based (de)serialization for this service.
+
+# v1.74.0 (2026-09-17)
+
+* **Feature**: Added support to query the tenant name for BatchGetMetricData and CreateExportJob APIs to filter metrics and messages at the tenant level.
+
+# v1.73.0 (2026-09-09)
+
+* **Feature**: Stop registering the `retry.MetricsHeader` middleware in generated clients. The `Amz-Sdk-Request` header is now set by the retry middleware itself.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.72.0 (2026-09-04)
+
+* **Feature**: Stop registering the `spanRetryLoop` middleware in generated clients. The retry loop's tracing span is now opened by the retry middleware itself.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.71.0 (2026-09-01)
+
+* **Feature**: Added support for managing SMIME signing certificates for email identities, including associating, listing, and disassociating certificates. Added the UpdateConfigurationSet operation to configure message security options such as signing scheme.
+
+# v1.70.0 (2026-08-31.2)
+
+* **Feature**: Stop registering the `SetCredentialSourceMiddleware` middleware in generated clients. Credential source user agent features are now set when the client's middleware stack is constructed.
+
+# v1.69.1 (2026-08-28)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.69.0 (2026-08-27)
+
+* **Feature**: Support connection read timeouts in the SDK. This is currently available on an opt-in basis by setting env `AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026=true`.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.68.0 (2026-08-26)
+
+* **Feature**: Stop registering the `ComputeContentLength` middleware in generated clients. `Content-Length` is now set when the request body is set via `SetStream`.
+* **Dependency Update**: Update to smithy-go v1.28.0.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.67.1 (2026-08-25)
+
+* **Dependency Update**: Update to smithy-go v1.27.10.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.67.0 (2026-08-20)
+
+* **Feature**: Amazon SES now supports per-message tracking overrides. You can use the new ConfigurationOverrides parameter in SendEmail and SendBulkEmail to enable or disable open and click tracking for individual messages without changing your account-level or configuration set settings.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.66.6 (2026-08-14)
+
+* **Dependency Update**: Update to smithy-go v1.27.8.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.66.5 (2026-08-10)
+
+* **Dependency Update**: Update to smithy-go v1.27.7.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.66.4 (2026-08-05)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.66.3 (2026-07-31.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+* **Dependency Update**: Upgrade to smithy-go v1.27.6 to fix various serde issues in HTTP binding services.
+
+# v1.66.2 (2026-07-29)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.66.1 (2026-07-28)
+
+* **Dependency Update**: Update to smithy-go v1.27.5.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.66.0 (2026-07-22)
+
+* **Feature**: Launching DEED and MREP in US GOV
+
+# v1.65.0 (2026-07-21)
+
+* **Feature**: Add an option to clients to disable clock skew
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.64.0 (2026-07-20)
+
+* **Feature**: Amazon SES introduces three new Pricing Plans (Essentials, Pro, Enterprise), which bundle SES features under one pricing umbrella.  The new PutAccountPricingAttributes API lets the user set the account's plan, while current plan retrievalif done through the new PricingAttributes field on GetAccount.
+
+# v1.63.1 (2026-07-13)
+
+* No change notes available for this release.
+
+# v1.63.0 (2026-07-06)
+
+* **Feature**: Add request serialization snapshot tests.
+
+# v1.62.6 (2026-07-01)
+
+* **Bug Fix**: Bump smithy-go to 1.27.3, fix JSON encorder for document.Number, endpoint host label format validation and CBOR union serialization on new serde
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.62.5 (2026-06-29)
+
+* No change notes available for this release.
+
+# v1.62.4 (2026-06-08)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.62.3 (2026-06-04)
+
+* **Dependency Update**: Update to smithy-go v1.27.1 to fix several union-related deserialization bugs in schema-serde-enabled services.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.62.2 (2026-06-03)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.62.1 (2026-06-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.62.0 (2026-05-29)
+
+* **Feature**: This release introduces support for Tenant Suppression Lists
+* **Dependency Update**: Update to smithy-go v1.26.0.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.61.1 (2026-05-28)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.61.0 (2026-05-22)
+
+* **Feature**: Adding new BDD representation of endpoint ruleset
+
+# v1.60.5 (2026-05-21)
+
+* No change notes available for this release.
+
+# v1.60.4 (2026-04-29)
+
+* **Dependency Update**: Update to smithy-go v1.25.1.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.60.3 (2026-04-17)
+
+* **Dependency Update**: Bump smithy-go to 1.25.0 to support endpointBdd trait
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.60.2 (2026-03-26)
+
+* **Bug Fix**: Fix a bug where a recorded clock skew could persist on the client even if the client and server clock ended up realigning.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.60.1 (2026-03-13)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.60.0 (2026-03-06)
+
+* **Feature**: Adds support for longer email message header values, increasing the maximum length from 870 to 995 characters for RFC 5322 compliance.
+
+# v1.59.4 (2026-03-05)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.59.3 (2026-03-03)
+
+* **Dependency Update**: Bump minimum Go version to 1.24
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.59.2 (2026-02-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.59.1 (2026-01-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.59.0 (2025-12-18)
+
+* **Feature**: Amazon SES introduces Email Validation feature which checks email addresses for syntax errors, domain validity, and risky addresses to help maintain deliverability and protect sender reputation. SES also adds resource tagging and ABAC support for EmailTemplates and CustomVerificationEmailTemplates.
+
+# v1.58.0 (2025-12-11)
+
+* **Feature**: Update GetEmailIdentity and CreateEmailIdentity response to include SigningHostedZone in DkimAttributes. Updated PutEmailIdentityDkimSigningAttributes Response to include SigningHostedZone.
+
+# v1.57.1 (2025-12-09)
+
+* No change notes available for this release.
+
+# v1.57.0 (2025-12-08)
+
+* **Feature**: Update Mail Manager Archive ARN validation
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.56.0 (2025-12-05)
+
+* **Feature**: Updating the desired url for `PutEmailIdentityDkimSigningAttributes` from v1 to v2
+
+# v1.55.2 (2025-12-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+* **Dependency Update**: Upgrade to smithy-go v1.24.0. Notably this version of the library reduces the allocation footprint of the middleware system. We observe a ~10% reduction in allocations per SDK call with this change.
+
+# v1.55.1 (2025-11-25)
+
+* **Bug Fix**: Add error check for endpoint param binding during auth scheme resolution to fix panic reported in #3234
+
+# v1.55.0 (2025-11-21)
+
+* **Feature**: Added support for new SES regions - Asia Pacific (Malaysia) and Canada (Calgary)
+
+# v1.54.5 (2025-11-19.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.54.4 (2025-11-12)
+
+* **Bug Fix**: Further reduce allocation overhead when the metrics system isn't in-use.
+* **Bug Fix**: Reduce allocation overhead when the client doesn't have any HTTP interceptors configured.
+* **Bug Fix**: Remove blank trace spans towards the beginning of the request that added no additional information. This conveys a slight reduction in overall allocations.
+
+# v1.54.3 (2025-11-11)
+
+* **Bug Fix**: Return validation error if input region is not a valid host label.
+
+# v1.54.2 (2025-11-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+* **Dependency Update**: Upgrade to smithy-go v1.23.2 which should convey some passive reduction of overall allocations, especially when not using the metrics system.
+
+# v1.54.1 (2025-10-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.54.0 (2025-10-23)
+
+* **Feature**: Update endpoint ruleset parameters casing
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.53.6 (2025-10-16)
+
+* **Dependency Update**: Bump minimum Go version to 1.23.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.53.5 (2025-09-26)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.53.4 (2025-09-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.53.3 (2025-09-10)
+
+* No change notes available for this release.
+
+# v1.53.2 (2025-09-08)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.53.1 (2025-08-29)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.53.0 (2025-08-28)
+
+* **Feature**: Remove incorrect endpoint tests
+
+# v1.52.2 (2025-08-27)
+
+* **Dependency Update**: Update to smithy-go v1.23.0.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.52.1 (2025-08-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.52.0 (2025-08-20)
+
+* **Feature**: Remove incorrect endpoint tests
+* **Bug Fix**: Remove unused deserialization code.
+
+# v1.51.0 (2025-08-11)
+
+* **Feature**: Add support for configuring per-service Options via callback on global config.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.50.0 (2025-08-04)
+
+* **Feature**: Support configurable auth scheme preferences in service clients via AWS_AUTH_SCHEME_PREFERENCE in the environment, auth_scheme_preference in the config file, and through in-code settings on LoadDefaultConfig and client constructor methods.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.49.0 (2025-07-31)
+
+* **Feature**: This release introduces support for Multi-tenant management
+
+# v1.48.1 (2025-07-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.48.0 (2025-07-28)
+
+* **Feature**: Add support for HTTP interceptors.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.47.1 (2025-07-19)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.47.0 (2025-07-18)
+
+* **Feature**: Added IP Visibility support for managed dedicated pools. Enhanced GetDedicatedIp and GetDedicatedIps APIs to return managed IP addresses.
+
+# v1.46.0 (2025-06-27)
+
+* **Feature**: Added support for new SES regions
+
+# v1.45.2 (2025-06-17)
+
+* **Dependency Update**: Update to smithy-go v1.22.4.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.45.1 (2025-06-10)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.45.0 (2025-04-03)
+
+* **Feature**: This release enables customers to provide attachments in the SESv2 SendEmail and SendBulkEmail APIs.
+
+# v1.44.0 (2025-03-31)
+
+* **Feature**: Add dual-stack support to global endpoints.
+
+# v1.43.1 (2025-03-04.2)
+
+* **Bug Fix**: Add assurance test for operation order.
+
+# v1.43.0 (2025-02-27)
+
+* **Feature**: Track credential providers via User-Agent Feature ids
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.42.0 (2025-02-19)
+
+* **Feature**: This release adds the ability for outbound email sent with SES to preserve emails to a Mail Manager archive.
+
+# v1.41.6 (2025-02-18)
+
+* **Bug Fix**: Bump go version to 1.22
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.5 (2025-02-05)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.4 (2025-01-31)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.3 (2025-01-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.41.2 (2025-01-24)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+* **Dependency Update**: Upgrade to smithy-go v1.22.2.
+
+# v1.41.1 (2025-01-17)
+
+* **Bug Fix**: Fix bug where credentials weren't refreshed during retry loop.
+
+# v1.41.0 (2025-01-15)
+
+* **Feature**: This release introduces a new recommendation in Virtual Deliverability Manager Advisor, which detects elevated complaint rates for customer sending identities.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.40.2 (2025-01-09)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.40.1 (2024-12-19)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.40.0 (2024-12-11)
+
+* **Feature**: Introduces support for multi-region endpoint.
+
+# v1.39.0 (2024-12-10)
+
+* **Feature**: Introduces support for creating DEED (Deterministic Easy-DKIM) identities.
+
+# v1.38.4 (2024-12-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.38.3 (2024-11-18)
+
+* **Dependency Update**: Update to smithy-go v1.22.1.
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.38.2 (2024-11-07)
 
 * **Bug Fix**: Adds case-insensitive handling of error message fields in service responses

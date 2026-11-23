@@ -9,22 +9,33 @@ Generate a secret santa matchup and email the participants!
 3. Setup AWS credential access.
 4. Create a config file (recommended that you try with some test email addresses first):
 ```
-# first element of the list is the email address of the person.
-# second element of the list is the person's "couple" if they have one, this ensures
-#   that couples are not matched together.
-# third element (optional) FIXES the person's match: they will always be
-#   assigned the named person. Leave it out or set it to "" for a random match.
-cat >./config.json <<EOF
+cat >./config.json <<'EOF'
 {
-    "Peppa Pig":  ["peppapig@hotmail.com", "", "George"],
-    "George":     ["georgepig@gmail.com", ""],
-    "Daddy Pig":  ["daddypig@gmail.com", "Mummy Pig"],
-    "Mummy Pig":  ["mummypig@yahoo.com", "Daddy Pig"],
-    "Suzy Sheep": ["suzy@hotmail.com", ""]
+    "budget": "$50",
+    "date": "December 24",
+    "participants": {
+        "Peppa Pig":  {"email": "peppapig@hotmail.com", "fixed": "George"},
+        "George":     {"email": "georgepig@gmail.com"},
+        "Daddy Pig":  {"email": "daddypig@gmail.com", "partner": "Mummy Pig"},
+        "Mummy Pig":  {"email": "mummypig@yahoo.com", "partner": "Daddy Pig"},
+        "Suzy Sheep": {"email": "suzy@hotmail.com"}
+    }
 }
 EOF
 ```
-5. Run a dryrun of the program (no emails sent or SES client created):
+Each participant has:
+- `email` (required): the address their email is sent to.
+- `partner` (optional): the person's couple. Couples are never matched together. Use `"NA"` or leave it out for no partner. The program exits with an error, in dryrun too, if a partner isn't in the config or if two people don't list each other.
+- `fixed` (optional): always assign this person as their recipient.
+
+Optional email settings:
+- `budget` and `date`: shown in the default email body when set.
+- `subject` and `body`: [Go templates](https://pkg.go.dev/text/template) that replace the default subject and body. They can use `{{.Giver}}`, `{{.Recipient}}`, `{{.Budget}}` and `{{.Date}}`.
+- `html`: an HTML version of the body, using the same fields. When set, it is sent alongside the plain text body.
+
+Nobody is given the same person they had last year, unless it is their `fixed` match. Last year's matches are read from the `.audit/` files (see below).
+
+5. Run a dryrun of the program (no emails are sent):
 ```
 go run main.go -file config.json -from secretsanta@mydomain.com -dryrun
 ```
@@ -32,5 +43,7 @@ go run main.go -file config.json -from secretsanta@mydomain.com -dryrun
 ```
 go run main.go -file config.json -from secretsanta@mydomain.com
 ```
+
+`-file` and `-from` are always required.
 
 A copy of each sent email is written to `.audit/<name>.<year>.txt` (for example `.audit/Nuria.2026.txt`), so you can check who somebody has later. Dryruns write to `.audit/<name>.dryrun.<year>.txt` instead, so they never overwrite the real matches.

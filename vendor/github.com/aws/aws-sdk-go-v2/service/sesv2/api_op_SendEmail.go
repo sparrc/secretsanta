@@ -4,11 +4,10 @@ package sesv2
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/service/sesv2/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Sends an email message. You can use the Amazon SES API v2 to send the following
@@ -53,6 +52,11 @@ type SendEmailInput struct {
 	// This member is required.
 	Content *types.EmailContent
 
+	// An object that overrides, for this message only, settings that would otherwise
+	// apply to it. Each setting that you don't override keeps the value that already
+	// applies.
+	ConfigurationOverrides *types.ConfigurationOverrides
+
 	// The name of the configuration set to use when sending the email.
 	ConfigurationSetName *string
 
@@ -63,6 +67,9 @@ type SendEmailInput struct {
 	// send using the SendEmail operation. Tags correspond to characteristics of the
 	// email that you define, so that you can publish email sending events.
 	EmailTags []types.MessageTag
+
+	// The ID of the multi-region endpoint (global-endpoint).
+	EndpointId *string
 
 	// The address that you want bounce and complaint notifications to be sent to.
 	FeedbackForwardingEmailAddress *string
@@ -116,7 +123,74 @@ type SendEmailInput struct {
 	// the message, each Reply-to address receives the reply.
 	ReplyToAddresses []string
 
+	// The name of the tenant through which this email will be sent.
+	//
+	// The email sending operation will only succeed if all referenced resources
+	// (identities, configuration sets, and templates) are associated with this tenant.
+	TenantName *string
+
 	noSmithyDocumentSerde
+}
+
+func (v *SendEmailInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SendEmailRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SendEmailInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ConfigurationOverrides != nil {
+		s.WriteStruct(schemas.SendEmailRequest_ConfigurationOverrides)
+		v.ConfigurationOverrides.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.ConfigurationSetName != nil {
+		s.WriteString(schemas.SendEmailRequest_ConfigurationSetName, *v.ConfigurationSetName)
+	}
+	if v.Content != nil {
+		s.WriteStruct(schemas.SendEmailRequest_Content)
+		v.Content.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Destination != nil {
+		s.WriteStruct(schemas.SendEmailRequest_Destination)
+		v.Destination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.EmailTags != nil {
+		serializeMessageTagList(s, schemas.SendEmailRequest_EmailTags, v.EmailTags)
+	}
+	if v.EndpointId != nil {
+		s.WriteString(schemas.SendEmailRequest_EndpointId, *v.EndpointId)
+	}
+	if v.FeedbackForwardingEmailAddress != nil {
+		s.WriteString(schemas.SendEmailRequest_FeedbackForwardingEmailAddress, *v.FeedbackForwardingEmailAddress)
+	}
+	if v.FeedbackForwardingEmailAddressIdentityArn != nil {
+		s.WriteString(schemas.SendEmailRequest_FeedbackForwardingEmailAddressIdentityArn, *v.FeedbackForwardingEmailAddressIdentityArn)
+	}
+	if v.FromEmailAddress != nil {
+		s.WriteString(schemas.SendEmailRequest_FromEmailAddress, *v.FromEmailAddress)
+	}
+	if v.FromEmailAddressIdentityArn != nil {
+		s.WriteString(schemas.SendEmailRequest_FromEmailAddressIdentityArn, *v.FromEmailAddressIdentityArn)
+	}
+	if v.ListManagementOptions != nil {
+		s.WriteStruct(schemas.SendEmailRequest_ListManagementOptions)
+		v.ListManagementOptions.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.ReplyToAddresses != nil {
+		serializeEmailAddressList(s, schemas.SendEmailRequest_ReplyToAddresses, v.ReplyToAddresses)
+	}
+	if v.TenantName != nil {
+		s.WriteString(schemas.SendEmailRequest_TenantName, *v.TenantName)
+	}
+}
+func (in *SendEmailInput) bindEndpointParams(p *EndpointParameters) {
+
+	p.EndpointId = in.EndpointId
+
 }
 
 // A unique message ID that you receive when an email is accepted for sending.
@@ -137,77 +211,48 @@ type SendEmailOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *SendEmailOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SendEmailResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SendEmailOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.MessageId != nil {
+		s.WriteString(schemas.SendEmailResponse_MessageId, *v.MessageId)
+	}
+}
+func (v *SendEmailOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SendEmailResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SendEmailResponse_MessageId:
+			v.MessageId = new(string)
+			return d.ReadString(schemas.SendEmailResponse_MessageId, v.MessageId)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationSendEmailMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.SendEmail, schemas.SendEmailRequest, schemas.SendEmailResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpSendEmail{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.SendEmail, schemas.SendEmailRequest, schemas.SendEmailResponse), output: &SendEmailOutput{}}, middleware.After); err != nil {
 		return err
-	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpSendEmail{}, middleware.After)
-	if err != nil {
-		return err
-	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "SendEmail"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
+	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
-	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpSendEmailValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opSendEmail(options.Region), middleware.Before); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -222,25 +267,8 @@ func (c *Client) addOperationSendEmailMiddlewares(stack *middleware.Stack, optio
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newServiceMetadataMiddleware_opSendEmail(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "SendEmail",
-	}
 }

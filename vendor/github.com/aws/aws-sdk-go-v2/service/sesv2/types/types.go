@@ -3,6 +3,8 @@
 package types
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/sesv2/schemas"
+	smithy "github.com/aws/smithy-go"
 	smithydocument "github.com/aws/smithy-go/document"
 	"time"
 )
@@ -15,7 +17,7 @@ type AccountDetails struct {
 	AdditionalContactEmailAddresses []string
 
 	// The language you would prefer for the case. The contact language can be one of
-	// ENGLISH or JAPANESE .
+	// EN or JA .
 	ContactLanguage ContactLanguage
 
 	// The type of email your account is sending. The mail type can be one of the
@@ -41,6 +43,207 @@ type AccountDetails struct {
 	WebsiteURL *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *AccountDetails) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.AccountDetails)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *AccountDetails) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AdditionalContactEmailAddresses != nil {
+		serializeAdditionalContactEmailAddresses(s, schemas.AccountDetails_AdditionalContactEmailAddresses, v.AdditionalContactEmailAddresses)
+	}
+	if v.ContactLanguage != "" {
+		s.WriteString(schemas.AccountDetails_ContactLanguage, string(v.ContactLanguage))
+	}
+	if v.MailType != "" {
+		s.WriteString(schemas.AccountDetails_MailType, string(v.MailType))
+	}
+	if v.ReviewDetails != nil {
+		s.WriteStruct(schemas.AccountDetails_ReviewDetails)
+		v.ReviewDetails.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.UseCaseDescription != nil {
+		s.WriteString(schemas.AccountDetails_UseCaseDescription, *v.UseCaseDescription)
+	}
+	if v.WebsiteURL != nil {
+		s.WriteString(schemas.AccountDetails_WebsiteURL, *v.WebsiteURL)
+	}
+}
+func (v *AccountDetails) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.AccountDetails, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.AccountDetails_AdditionalContactEmailAddresses:
+			return deserializeAdditionalContactEmailAddresses(d, schemas.AccountDetails_AdditionalContactEmailAddresses, &v.AdditionalContactEmailAddresses)
+		case schemas.AccountDetails_ContactLanguage:
+			var ev string
+			if err := d.ReadString(schemas.AccountDetails_ContactLanguage, &ev); err != nil {
+				return err
+			}
+			v.ContactLanguage = ContactLanguage(ev)
+			return nil
+		case schemas.AccountDetails_MailType:
+			var ev string
+			if err := d.ReadString(schemas.AccountDetails_MailType, &ev); err != nil {
+				return err
+			}
+			v.MailType = MailType(ev)
+			return nil
+		case schemas.AccountDetails_ReviewDetails:
+			v.ReviewDetails = &ReviewDetails{}
+			return v.ReviewDetails.Deserialize(d)
+		case schemas.AccountDetails_UseCaseDescription:
+			v.UseCaseDescription = new(string)
+			return d.ReadString(schemas.AccountDetails_UseCaseDescription, v.UseCaseDescription)
+		case schemas.AccountDetails_WebsiteURL:
+			v.WebsiteURL = new(string)
+			return d.ReadString(schemas.AccountDetails_WebsiteURL, v.WebsiteURL)
+		}
+		return nil
+	})
+}
+
+// Used to associate a configuration set with a MailManager archive.
+type ArchivingOptions struct {
+
+	// The Amazon Resource Name (ARN) of the MailManager archive where the Amazon SES
+	// API v2 will archive sent emails.
+	ArchiveArn *string
+
+	noSmithyDocumentSerde
+}
+
+func (v *ArchivingOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ArchivingOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ArchivingOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ArchiveArn != nil {
+		s.WriteString(schemas.ArchivingOptions_ArchiveArn, *v.ArchiveArn)
+	}
+}
+func (v *ArchivingOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ArchivingOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ArchivingOptions_ArchiveArn:
+			v.ArchiveArn = new(string)
+			return d.ReadString(schemas.ArchivingOptions_ArchiveArn, v.ArchiveArn)
+		}
+		return nil
+	})
+}
+
+// Contains metadata and attachment raw content.
+type Attachment struct {
+
+	// The file name for the attachment as it will appear in the email. Amazon SES
+	// restricts certain file extensions. To ensure attachments are accepted, check the
+	// [Unsupported attachment types]in the Amazon SES Developer Guide.
+	//
+	// [Unsupported attachment types]: https://docs.aws.amazon.com/ses/latest/dg/mime-types.html
+	//
+	// This member is required.
+	FileName *string
+
+	//  The raw data of the attachment. It needs to be base64-encoded if you are
+	// accessing Amazon SES directly through the HTTPS interface. If you are accessing
+	// Amazon SES using an Amazon Web Services SDK, the SDK takes care of the base
+	// 64-encoding for you.
+	//
+	// This member is required.
+	RawContent []byte
+
+	//  A brief description of the attachment content.
+	ContentDescription *string
+
+	//  A standard descriptor indicating how the attachment should be rendered in the
+	// email. Supported values: ATTACHMENT or INLINE .
+	ContentDisposition AttachmentContentDisposition
+
+	//  Unique identifier for the attachment, used for referencing attachments with
+	// INLINE disposition in HTML content.
+	ContentId *string
+
+	//  Specifies how the attachment is encoded. Supported values: BASE64 ,
+	// QUOTED_PRINTABLE , SEVEN_BIT .
+	ContentTransferEncoding AttachmentContentTransferEncoding
+
+	//  The MIME type of the attachment.
+	//
+	// Example: application/pdf , image/jpeg
+	ContentType *string
+
+	noSmithyDocumentSerde
+}
+
+func (v *Attachment) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Attachment)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Attachment) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ContentDescription != nil {
+		s.WriteString(schemas.Attachment_ContentDescription, *v.ContentDescription)
+	}
+	if v.ContentDisposition != "" {
+		s.WriteString(schemas.Attachment_ContentDisposition, string(v.ContentDisposition))
+	}
+	if v.ContentId != nil {
+		s.WriteString(schemas.Attachment_ContentId, *v.ContentId)
+	}
+	if v.ContentTransferEncoding != "" {
+		s.WriteString(schemas.Attachment_ContentTransferEncoding, string(v.ContentTransferEncoding))
+	}
+	if v.ContentType != nil {
+		s.WriteString(schemas.Attachment_ContentType, *v.ContentType)
+	}
+	if v.FileName != nil {
+		s.WriteString(schemas.Attachment_FileName, *v.FileName)
+	}
+	if v.RawContent != nil {
+		s.WriteBlob(schemas.Attachment_RawContent, v.RawContent)
+	}
+}
+func (v *Attachment) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Attachment, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Attachment_ContentDescription:
+			v.ContentDescription = new(string)
+			return d.ReadString(schemas.Attachment_ContentDescription, v.ContentDescription)
+		case schemas.Attachment_ContentDisposition:
+			var ev string
+			if err := d.ReadString(schemas.Attachment_ContentDisposition, &ev); err != nil {
+				return err
+			}
+			v.ContentDisposition = AttachmentContentDisposition(ev)
+			return nil
+		case schemas.Attachment_ContentId:
+			v.ContentId = new(string)
+			return d.ReadString(schemas.Attachment_ContentId, v.ContentId)
+		case schemas.Attachment_ContentTransferEncoding:
+			var ev string
+			if err := d.ReadString(schemas.Attachment_ContentTransferEncoding, &ev); err != nil {
+				return err
+			}
+			v.ContentTransferEncoding = AttachmentContentTransferEncoding(ev)
+			return nil
+		case schemas.Attachment_ContentType:
+			v.ContentType = new(string)
+			return d.ReadString(schemas.Attachment_ContentType, v.ContentType)
+		case schemas.Attachment_FileName:
+			v.FileName = new(string)
+			return d.ReadString(schemas.Attachment_FileName, v.FileName)
+		case schemas.Attachment_RawContent:
+			return d.ReadBlob(schemas.Attachment_RawContent, &v.RawContent)
+		}
+		return nil
+	})
 }
 
 // Represents a single metric data query to include in a batch.
@@ -119,6 +322,65 @@ type BatchGetMetricDataQuery struct {
 	noSmithyDocumentSerde
 }
 
+func (v *BatchGetMetricDataQuery) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.BatchGetMetricDataQuery)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *BatchGetMetricDataQuery) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Dimensions != nil {
+		serializeDimensions(s, schemas.BatchGetMetricDataQuery_Dimensions, v.Dimensions)
+	}
+	if v.EndDate != nil {
+		s.WriteTime(schemas.BatchGetMetricDataQuery_EndDate, *v.EndDate)
+	}
+	if v.Id != nil {
+		s.WriteString(schemas.BatchGetMetricDataQuery_Id, *v.Id)
+	}
+	if v.Metric != "" {
+		s.WriteString(schemas.BatchGetMetricDataQuery_Metric, string(v.Metric))
+	}
+	if v.Namespace != "" {
+		s.WriteString(schemas.BatchGetMetricDataQuery_Namespace, string(v.Namespace))
+	}
+	if v.StartDate != nil {
+		s.WriteTime(schemas.BatchGetMetricDataQuery_StartDate, *v.StartDate)
+	}
+}
+func (v *BatchGetMetricDataQuery) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.BatchGetMetricDataQuery, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.BatchGetMetricDataQuery_Dimensions:
+			return deserializeDimensions(d, schemas.BatchGetMetricDataQuery_Dimensions, &v.Dimensions)
+		case schemas.BatchGetMetricDataQuery_EndDate:
+			v.EndDate = new(time.Time)
+			return d.ReadTime(schemas.BatchGetMetricDataQuery_EndDate, v.EndDate)
+		case schemas.BatchGetMetricDataQuery_Id:
+			v.Id = new(string)
+			return d.ReadString(schemas.BatchGetMetricDataQuery_Id, v.Id)
+		case schemas.BatchGetMetricDataQuery_Metric:
+			var ev string
+			if err := d.ReadString(schemas.BatchGetMetricDataQuery_Metric, &ev); err != nil {
+				return err
+			}
+			v.Metric = Metric(ev)
+			return nil
+		case schemas.BatchGetMetricDataQuery_Namespace:
+			var ev string
+			if err := d.ReadString(schemas.BatchGetMetricDataQuery_Namespace, &ev); err != nil {
+				return err
+			}
+			v.Namespace = MetricNamespace(ev)
+			return nil
+		case schemas.BatchGetMetricDataQuery_StartDate:
+			v.StartDate = new(time.Time)
+			return d.ReadTime(schemas.BatchGetMetricDataQuery_StartDate, v.StartDate)
+		}
+		return nil
+	})
+}
+
 // An object that contains information about a blacklisting event that impacts one
 // of the dedicated IP addresses that is associated with your account.
 type BlacklistEntry struct {
@@ -136,6 +398,40 @@ type BlacklistEntry struct {
 	noSmithyDocumentSerde
 }
 
+func (v *BlacklistEntry) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.BlacklistEntry)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *BlacklistEntry) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Description != nil {
+		s.WriteString(schemas.BlacklistEntry_Description, *v.Description)
+	}
+	if v.ListingTime != nil {
+		s.WriteTime(schemas.BlacklistEntry_ListingTime, *v.ListingTime)
+	}
+	if v.RblName != nil {
+		s.WriteString(schemas.BlacklistEntry_RblName, *v.RblName)
+	}
+}
+func (v *BlacklistEntry) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.BlacklistEntry, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.BlacklistEntry_Description:
+			v.Description = new(string)
+			return d.ReadString(schemas.BlacklistEntry_Description, v.Description)
+		case schemas.BlacklistEntry_ListingTime:
+			v.ListingTime = new(time.Time)
+			return d.ReadTime(schemas.BlacklistEntry_ListingTime, v.ListingTime)
+		case schemas.BlacklistEntry_RblName:
+			v.RblName = new(string)
+			return d.ReadString(schemas.BlacklistEntry_RblName, v.RblName)
+		}
+		return nil
+	})
+}
+
 // Represents the body of the email message.
 type Body struct {
 
@@ -150,6 +446,38 @@ type Body struct {
 	Text *Content
 
 	noSmithyDocumentSerde
+}
+
+func (v *Body) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Body)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Body) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Html != nil {
+		s.WriteStruct(schemas.Body_Html)
+		v.Html.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Text != nil {
+		s.WriteStruct(schemas.Body_Text)
+		v.Text.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *Body) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Body, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Body_Html:
+			v.Html = &Content{}
+			return v.Html.Deserialize(d)
+		case schemas.Body_Text:
+			v.Text = &Content{}
+			return v.Text.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // Information about a Bounce event.
@@ -170,6 +498,44 @@ type Bounce struct {
 	noSmithyDocumentSerde
 }
 
+func (v *Bounce) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Bounce)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Bounce) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.BounceSubType != nil {
+		s.WriteString(schemas.Bounce_BounceSubType, *v.BounceSubType)
+	}
+	if v.BounceType != "" {
+		s.WriteString(schemas.Bounce_BounceType, string(v.BounceType))
+	}
+	if v.DiagnosticCode != nil {
+		s.WriteString(schemas.Bounce_DiagnosticCode, *v.DiagnosticCode)
+	}
+}
+func (v *Bounce) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Bounce, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Bounce_BounceSubType:
+			v.BounceSubType = new(string)
+			return d.ReadString(schemas.Bounce_BounceSubType, v.BounceSubType)
+		case schemas.Bounce_BounceType:
+			var ev string
+			if err := d.ReadString(schemas.Bounce_BounceType, &ev); err != nil {
+				return err
+			}
+			v.BounceType = BounceType(ev)
+			return nil
+		case schemas.Bounce_DiagnosticCode:
+			v.DiagnosticCode = new(string)
+			return d.ReadString(schemas.Bounce_DiagnosticCode, v.DiagnosticCode)
+		}
+		return nil
+	})
+}
+
 // An object that contains the body of the message. You can specify a template
 // message.
 type BulkEmailContent struct {
@@ -178,6 +544,30 @@ type BulkEmailContent struct {
 	Template *Template
 
 	noSmithyDocumentSerde
+}
+
+func (v *BulkEmailContent) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.BulkEmailContent)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *BulkEmailContent) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Template != nil {
+		s.WriteStruct(schemas.BulkEmailContent_Template)
+		v.Template.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *BulkEmailContent) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.BulkEmailContent, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.BulkEmailContent_Template:
+			v.Template = &Template{}
+			return v.Template.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 type BulkEmailEntry struct {
@@ -221,75 +611,152 @@ type BulkEmailEntry struct {
 	ReplacementHeaders []MessageHeader
 
 	// A list of tags, in the form of name/value pairs, to apply to an email that you
-	// send using the SendBulkTemplatedEmail operation. Tags correspond to
-	// characteristics of the email that you define, so that you can publish email
-	// sending events.
+	// send using the SendBulkEmail operation. Tags correspond to characteristics of
+	// the email that you define, so that you can publish email sending events.
 	ReplacementTags []MessageTag
 
 	noSmithyDocumentSerde
+}
+
+func (v *BulkEmailEntry) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.BulkEmailEntry)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *BulkEmailEntry) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Destination != nil {
+		s.WriteStruct(schemas.BulkEmailEntry_Destination)
+		v.Destination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.ReplacementEmailContent != nil {
+		s.WriteStruct(schemas.BulkEmailEntry_ReplacementEmailContent)
+		v.ReplacementEmailContent.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.ReplacementHeaders != nil {
+		serializeMessageHeaderList(s, schemas.BulkEmailEntry_ReplacementHeaders, v.ReplacementHeaders)
+	}
+	if v.ReplacementTags != nil {
+		serializeMessageTagList(s, schemas.BulkEmailEntry_ReplacementTags, v.ReplacementTags)
+	}
+}
+func (v *BulkEmailEntry) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.BulkEmailEntry, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.BulkEmailEntry_Destination:
+			v.Destination = &Destination{}
+			return v.Destination.Deserialize(d)
+		case schemas.BulkEmailEntry_ReplacementEmailContent:
+			v.ReplacementEmailContent = &ReplacementEmailContent{}
+			return v.ReplacementEmailContent.Deserialize(d)
+		case schemas.BulkEmailEntry_ReplacementHeaders:
+			return deserializeMessageHeaderList(d, schemas.BulkEmailEntry_ReplacementHeaders, &v.ReplacementHeaders)
+		case schemas.BulkEmailEntry_ReplacementTags:
+			return deserializeMessageTagList(d, schemas.BulkEmailEntry_ReplacementTags, &v.ReplacementTags)
+		}
+		return nil
+	})
 }
 
 // The result of the SendBulkEmail operation of each specified BulkEmailEntry .
 type BulkEmailEntryResult struct {
 
 	// A description of an error that prevented a message being sent using the
-	// SendBulkTemplatedEmail operation.
+	// SendBulkEmail operation.
 	Error *string
 
-	// The unique message identifier returned from the SendBulkTemplatedEmail
-	// operation.
+	// The unique message identifier returned from the SendBulkEmail operation.
 	MessageId *string
 
-	// The status of a message sent using the SendBulkTemplatedEmail operation.
+	// The status of a message sent using the SendBulkEmail operation.
 	//
 	// Possible values for this parameter include:
 	//
-	//   - SUCCESS: Amazon SES accepted the message, and will attempt to deliver it to
+	//   - SUCCESS – Amazon SES accepted the message, and will attempt to deliver it to
 	//   the recipients.
 	//
-	//   - MESSAGE_REJECTED: The message was rejected because it contained a virus.
+	//   - MESSAGE_REJECTED – The message was rejected because it contained a virus.
 	//
-	//   - MAIL_FROM_DOMAIN_NOT_VERIFIED: The sender's email address or domain was not
+	//   - MAIL_FROM_DOMAIN_NOT_VERIFIED – The sender's email address or domain was not
 	//   verified.
 	//
-	//   - CONFIGURATION_SET_DOES_NOT_EXIST: The configuration set you specified does
-	//   not exist.
+	//   - CONFIGURATION_SET_NOT_FOUND – The configuration set you specified does not
+	//   exist.
 	//
-	//   - TEMPLATE_DOES_NOT_EXIST: The template you specified does not exist.
+	//   - TEMPLATE_NOT_FOUND – The template you specified does not exist.
 	//
-	//   - ACCOUNT_SUSPENDED: Your account has been shut down because of issues
+	//   - ACCOUNT_SUSPENDED – Your account has been shut down because of issues
 	//   related to your email sending practices.
 	//
-	//   - ACCOUNT_THROTTLED: The number of emails you can send has been reduced
+	//   - ACCOUNT_THROTTLED – The number of emails you can send has been reduced
 	//   because your account has exceeded its allocated sending limit.
 	//
-	//   - ACCOUNT_DAILY_QUOTA_EXCEEDED: You have reached or exceeded the maximum
+	//   - ACCOUNT_DAILY_QUOTA_EXCEEDED – You have reached or exceeded the maximum
 	//   number of emails you can send from your account in a 24-hour period.
 	//
-	//   - INVALID_SENDING_POOL_NAME: The configuration set you specified refers to an
+	//   - INVALID_SENDING_POOL_NAME – The configuration set you specified refers to an
 	//   IP pool that does not exist.
 	//
-	//   - ACCOUNT_SENDING_PAUSED: Email sending for the Amazon SES account was
-	//   disabled using the [UpdateAccountSendingEnabled]operation.
+	//   - ACCOUNT_SENDING_PAUSED – Email sending for the Amazon SES account was
+	//   disabled using the [PutAccountSendingAttributes]operation.
 	//
-	//   - CONFIGURATION_SET_SENDING_PAUSED: Email sending for this configuration set
-	//   was disabled using the [UpdateConfigurationSetSendingEnabled]operation.
+	//   - CONFIGURATION_SET_SENDING_PAUSED – Email sending for this configuration set
+	//   was disabled using the [PutConfigurationSetSendingOptions]operation.
 	//
-	//   - INVALID_PARAMETER_VALUE: One or more of the parameters you specified when
-	//   calling this operation was invalid. See the error message for additional
-	//   information.
+	//   - INVALID_PARAMETER – One or more of the parameters you specified when calling
+	//   this operation was invalid. See the error message for additional information.
 	//
-	//   - TRANSIENT_FAILURE: Amazon SES was unable to process your request because of
+	//   - TRANSIENT_FAILURE – Amazon SES was unable to process your request because of
 	//   a temporary issue.
 	//
-	//   - FAILED: Amazon SES was unable to process your request. See the error
+	//   - FAILED – Amazon SES was unable to process your request. See the error
 	//   message for additional information.
 	//
-	// [UpdateAccountSendingEnabled]: https://docs.aws.amazon.com/ses/latest/APIReference/API_UpdateAccountSendingEnabled.html
-	// [UpdateConfigurationSetSendingEnabled]: https://docs.aws.amazon.com/ses/latest/APIReference/API_UpdateConfigurationSetSendingEnabled.html
+	// [PutConfigurationSetSendingOptions]: https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_PutConfigurationSetSendingOptions.html
+	// [PutAccountSendingAttributes]: https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_PutAccountSendingAttributes.html
 	Status BulkEmailStatus
 
 	noSmithyDocumentSerde
+}
+
+func (v *BulkEmailEntryResult) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.BulkEmailEntryResult)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *BulkEmailEntryResult) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Error != nil {
+		s.WriteString(schemas.BulkEmailEntryResult_Error, *v.Error)
+	}
+	if v.MessageId != nil {
+		s.WriteString(schemas.BulkEmailEntryResult_MessageId, *v.MessageId)
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.BulkEmailEntryResult_Status, string(v.Status))
+	}
+}
+func (v *BulkEmailEntryResult) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.BulkEmailEntryResult, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.BulkEmailEntryResult_Error:
+			v.Error = new(string)
+			return d.ReadString(schemas.BulkEmailEntryResult_Error, v.Error)
+		case schemas.BulkEmailEntryResult_MessageId:
+			v.MessageId = new(string)
+			return d.ReadString(schemas.BulkEmailEntryResult_MessageId, v.MessageId)
+		case schemas.BulkEmailEntryResult_Status:
+			var ev string
+			if err := d.ReadString(schemas.BulkEmailEntryResult_Status, &ev); err != nil {
+				return err
+			}
+			v.Status = BulkEmailStatus(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An object that defines an Amazon CloudWatch destination for email events. You
@@ -306,6 +773,27 @@ type CloudWatchDestination struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CloudWatchDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CloudWatchDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CloudWatchDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DimensionConfigurations != nil {
+		serializeCloudWatchDimensionConfigurations(s, schemas.CloudWatchDestination_DimensionConfigurations, v.DimensionConfigurations)
+	}
+}
+func (v *CloudWatchDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.CloudWatchDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.CloudWatchDestination_DimensionConfigurations:
+			return deserializeCloudWatchDimensionConfigurations(d, schemas.CloudWatchDestination_DimensionConfigurations, &v.DimensionConfigurations)
+		}
+		return nil
+	})
+}
+
 // An object that defines the dimension configuration to use when you send email
 // events to Amazon CloudWatch.
 type CloudWatchDimensionConfiguration struct {
@@ -317,7 +805,7 @@ type CloudWatchDimensionConfiguration struct {
 	//   - Can only contain ASCII letters (a–z, A–Z), numbers (0–9), underscores (_),
 	//   or dashes (-), at signs (@), and periods (.).
 	//
-	//   - It can contain no more than 256 characters.
+	//   - It can contain no more than 255 characters.
 	//
 	// This member is required.
 	DefaultDimensionValue *string
@@ -328,21 +816,59 @@ type CloudWatchDimensionConfiguration struct {
 	//   - It can only contain ASCII letters (a–z, A–Z), numbers (0–9), underscores
 	//   (_), or dashes (-).
 	//
-	//   - It can contain no more than 256 characters.
+	//   - It can contain no more than 255 characters.
 	//
 	// This member is required.
 	DimensionName *string
 
 	// The location where the Amazon SES API v2 finds the value of a dimension to
 	// publish to Amazon CloudWatch. To use the message tags that you specify using an
-	// X-SES-MESSAGE-TAGS header or a parameter to the SendEmail or SendRawEmail API,
-	// choose messageTag . To use your own email headers, choose emailHeader . To use
-	// link tags, choose linkTags .
+	// X-SES-MESSAGE-TAGS header or a parameter to the SendEmail or SendBulkEmail
+	// operation, choose MESSAGE_TAG . To use your own email headers, choose
+	// EMAIL_HEADER . To use link tags, choose LINK_TAG .
 	//
 	// This member is required.
 	DimensionValueSource DimensionValueSource
 
 	noSmithyDocumentSerde
+}
+
+func (v *CloudWatchDimensionConfiguration) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CloudWatchDimensionConfiguration)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CloudWatchDimensionConfiguration) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DefaultDimensionValue != nil {
+		s.WriteString(schemas.CloudWatchDimensionConfiguration_DefaultDimensionValue, *v.DefaultDimensionValue)
+	}
+	if v.DimensionName != nil {
+		s.WriteString(schemas.CloudWatchDimensionConfiguration_DimensionName, *v.DimensionName)
+	}
+	if v.DimensionValueSource != "" {
+		s.WriteString(schemas.CloudWatchDimensionConfiguration_DimensionValueSource, string(v.DimensionValueSource))
+	}
+}
+func (v *CloudWatchDimensionConfiguration) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.CloudWatchDimensionConfiguration, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.CloudWatchDimensionConfiguration_DefaultDimensionValue:
+			v.DefaultDimensionValue = new(string)
+			return d.ReadString(schemas.CloudWatchDimensionConfiguration_DefaultDimensionValue, v.DefaultDimensionValue)
+		case schemas.CloudWatchDimensionConfiguration_DimensionName:
+			v.DimensionName = new(string)
+			return d.ReadString(schemas.CloudWatchDimensionConfiguration_DimensionName, v.DimensionName)
+		case schemas.CloudWatchDimensionConfiguration_DimensionValueSource:
+			var ev string
+			if err := d.ReadString(schemas.CloudWatchDimensionConfiguration_DimensionValueSource, &ev); err != nil {
+				return err
+			}
+			v.DimensionValueSource = DimensionValueSource(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // Information about a Complaint event.
@@ -358,6 +884,76 @@ type Complaint struct {
 	ComplaintSubType *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *Complaint) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Complaint)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Complaint) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ComplaintFeedbackType != nil {
+		s.WriteString(schemas.Complaint_ComplaintFeedbackType, *v.ComplaintFeedbackType)
+	}
+	if v.ComplaintSubType != nil {
+		s.WriteString(schemas.Complaint_ComplaintSubType, *v.ComplaintSubType)
+	}
+}
+func (v *Complaint) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Complaint, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Complaint_ComplaintFeedbackType:
+			v.ComplaintFeedbackType = new(string)
+			return d.ReadString(schemas.Complaint_ComplaintFeedbackType, v.ComplaintFeedbackType)
+		case schemas.Complaint_ComplaintSubType:
+			v.ComplaintSubType = new(string)
+			return d.ReadString(schemas.Complaint_ComplaintSubType, v.ComplaintSubType)
+		}
+		return nil
+	})
+}
+
+// An object that overrides settings for a single email sending request. An
+// override applies only to the message or messages in the request that contains
+// it. It doesn't change your account-level settings, and it doesn't change the
+// configuration set that the request uses.
+//
+// A setting that you don't override keeps the value that would otherwise apply to
+// the message. Depending on the setting, that value comes from the configuration
+// set that the message uses, from your account-level settings, or from the Amazon
+// SES default.
+type ConfigurationOverrides struct {
+
+	// An object that overrides the open and click tracking settings that would
+	// otherwise apply to the message.
+	Tracking *TrackingConfigurationOverrides
+
+	noSmithyDocumentSerde
+}
+
+func (v *ConfigurationOverrides) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ConfigurationOverrides)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ConfigurationOverrides) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Tracking != nil {
+		s.WriteStruct(schemas.ConfigurationOverrides_Tracking)
+		v.Tracking.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *ConfigurationOverrides) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ConfigurationOverrides, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ConfigurationOverrides_Tracking:
+			v.Tracking = &TrackingConfigurationOverrides{}
+			return v.Tracking.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // A contact is the end-user who is receiving the email.
@@ -382,6 +978,49 @@ type Contact struct {
 	noSmithyDocumentSerde
 }
 
+func (v *Contact) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Contact)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Contact) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.EmailAddress != nil {
+		s.WriteString(schemas.Contact_EmailAddress, *v.EmailAddress)
+	}
+	if v.LastUpdatedTimestamp != nil {
+		s.WriteTime(schemas.Contact_LastUpdatedTimestamp, *v.LastUpdatedTimestamp)
+	}
+	if v.TopicDefaultPreferences != nil {
+		serializeTopicPreferenceList(s, schemas.Contact_TopicDefaultPreferences, v.TopicDefaultPreferences)
+	}
+	if v.TopicPreferences != nil {
+		serializeTopicPreferenceList(s, schemas.Contact_TopicPreferences, v.TopicPreferences)
+	}
+	if v.UnsubscribeAll != false {
+		s.WriteBool(schemas.Contact_UnsubscribeAll, v.UnsubscribeAll)
+	}
+}
+func (v *Contact) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Contact, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Contact_EmailAddress:
+			v.EmailAddress = new(string)
+			return d.ReadString(schemas.Contact_EmailAddress, v.EmailAddress)
+		case schemas.Contact_LastUpdatedTimestamp:
+			v.LastUpdatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.Contact_LastUpdatedTimestamp, v.LastUpdatedTimestamp)
+		case schemas.Contact_TopicDefaultPreferences:
+			return deserializeTopicPreferenceList(d, schemas.Contact_TopicDefaultPreferences, &v.TopicDefaultPreferences)
+		case schemas.Contact_TopicPreferences:
+			return deserializeTopicPreferenceList(d, schemas.Contact_TopicPreferences, &v.TopicPreferences)
+		case schemas.Contact_UnsubscribeAll:
+			return d.ReadBool(schemas.Contact_UnsubscribeAll, &v.UnsubscribeAll)
+		}
+		return nil
+	})
+}
+
 // A list that contains contacts that have subscribed to a particular topic or
 // topics.
 type ContactList struct {
@@ -393,6 +1032,34 @@ type ContactList struct {
 	LastUpdatedTimestamp *time.Time
 
 	noSmithyDocumentSerde
+}
+
+func (v *ContactList) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ContactList)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ContactList) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ContactListName != nil {
+		s.WriteString(schemas.ContactList_ContactListName, *v.ContactListName)
+	}
+	if v.LastUpdatedTimestamp != nil {
+		s.WriteTime(schemas.ContactList_LastUpdatedTimestamp, *v.LastUpdatedTimestamp)
+	}
+}
+func (v *ContactList) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ContactList, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ContactList_ContactListName:
+			v.ContactListName = new(string)
+			return d.ReadString(schemas.ContactList_ContactListName, v.ContactListName)
+		case schemas.ContactList_LastUpdatedTimestamp:
+			v.LastUpdatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.ContactList_LastUpdatedTimestamp, v.LastUpdatedTimestamp)
+		}
+		return nil
+	})
 }
 
 // An object that contains details about the action of a contact list.
@@ -417,6 +1084,38 @@ type ContactListDestination struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ContactListDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ContactListDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ContactListDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ContactListImportAction != "" {
+		s.WriteString(schemas.ContactListDestination_ContactListImportAction, string(v.ContactListImportAction))
+	}
+	if v.ContactListName != nil {
+		s.WriteString(schemas.ContactListDestination_ContactListName, *v.ContactListName)
+	}
+}
+func (v *ContactListDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ContactListDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ContactListDestination_ContactListImportAction:
+			var ev string
+			if err := d.ReadString(schemas.ContactListDestination_ContactListImportAction, &ev); err != nil {
+				return err
+			}
+			v.ContactListImportAction = ContactListImportAction(ev)
+			return nil
+		case schemas.ContactListDestination_ContactListName:
+			v.ContactListName = new(string)
+			return d.ReadString(schemas.ContactListDestination_ContactListName, v.ContactListName)
+		}
+		return nil
+	})
+}
+
 // An object that represents the content of the email, and optionally a character
 // set specification.
 type Content struct {
@@ -433,6 +1132,34 @@ type Content struct {
 	Charset *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *Content) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Content)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Content) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Charset != nil {
+		s.WriteString(schemas.Content_Charset, *v.Charset)
+	}
+	if v.Data != nil {
+		s.WriteString(schemas.Content_Data, *v.Data)
+	}
+}
+func (v *Content) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Content, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Content_Charset:
+			v.Charset = new(string)
+			return d.ReadString(schemas.Content_Charset, v.Charset)
+		case schemas.Content_Data:
+			v.Data = new(string)
+			return d.ReadString(schemas.Content_Data, v.Data)
+		}
+		return nil
+	})
 }
 
 // Contains information about a custom verification email template.
@@ -458,6 +1185,52 @@ type CustomVerificationEmailTemplateMetadata struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CustomVerificationEmailTemplateMetadata) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CustomVerificationEmailTemplateMetadata)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CustomVerificationEmailTemplateMetadata) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FailureRedirectionURL != nil {
+		s.WriteString(schemas.CustomVerificationEmailTemplateMetadata_FailureRedirectionURL, *v.FailureRedirectionURL)
+	}
+	if v.FromEmailAddress != nil {
+		s.WriteString(schemas.CustomVerificationEmailTemplateMetadata_FromEmailAddress, *v.FromEmailAddress)
+	}
+	if v.SuccessRedirectionURL != nil {
+		s.WriteString(schemas.CustomVerificationEmailTemplateMetadata_SuccessRedirectionURL, *v.SuccessRedirectionURL)
+	}
+	if v.TemplateName != nil {
+		s.WriteString(schemas.CustomVerificationEmailTemplateMetadata_TemplateName, *v.TemplateName)
+	}
+	if v.TemplateSubject != nil {
+		s.WriteString(schemas.CustomVerificationEmailTemplateMetadata_TemplateSubject, *v.TemplateSubject)
+	}
+}
+func (v *CustomVerificationEmailTemplateMetadata) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.CustomVerificationEmailTemplateMetadata, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.CustomVerificationEmailTemplateMetadata_FailureRedirectionURL:
+			v.FailureRedirectionURL = new(string)
+			return d.ReadString(schemas.CustomVerificationEmailTemplateMetadata_FailureRedirectionURL, v.FailureRedirectionURL)
+		case schemas.CustomVerificationEmailTemplateMetadata_FromEmailAddress:
+			v.FromEmailAddress = new(string)
+			return d.ReadString(schemas.CustomVerificationEmailTemplateMetadata_FromEmailAddress, v.FromEmailAddress)
+		case schemas.CustomVerificationEmailTemplateMetadata_SuccessRedirectionURL:
+			v.SuccessRedirectionURL = new(string)
+			return d.ReadString(schemas.CustomVerificationEmailTemplateMetadata_SuccessRedirectionURL, v.SuccessRedirectionURL)
+		case schemas.CustomVerificationEmailTemplateMetadata_TemplateName:
+			v.TemplateName = new(string)
+			return d.ReadString(schemas.CustomVerificationEmailTemplateMetadata_TemplateName, v.TemplateName)
+		case schemas.CustomVerificationEmailTemplateMetadata_TemplateSubject:
+			v.TemplateSubject = new(string)
+			return d.ReadString(schemas.CustomVerificationEmailTemplateMetadata_TemplateSubject, v.TemplateSubject)
+		}
+		return nil
+	})
+}
+
 // An object that contains information about the volume of email sent on each day
 // of the analysis period.
 type DailyVolume struct {
@@ -476,6 +1249,41 @@ type DailyVolume struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DailyVolume) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DailyVolume)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DailyVolume) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DomainIspPlacements != nil {
+		serializeDomainIspPlacements(s, schemas.DailyVolume_DomainIspPlacements, v.DomainIspPlacements)
+	}
+	if v.StartDate != nil {
+		s.WriteTime(schemas.DailyVolume_StartDate, *v.StartDate)
+	}
+	if v.VolumeStatistics != nil {
+		s.WriteStruct(schemas.DailyVolume_VolumeStatistics)
+		v.VolumeStatistics.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *DailyVolume) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DailyVolume, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DailyVolume_DomainIspPlacements:
+			return deserializeDomainIspPlacements(d, schemas.DailyVolume_DomainIspPlacements, &v.DomainIspPlacements)
+		case schemas.DailyVolume_StartDate:
+			v.StartDate = new(time.Time)
+			return d.ReadTime(schemas.DailyVolume_StartDate, v.StartDate)
+		case schemas.DailyVolume_VolumeStatistics:
+			v.VolumeStatistics = &VolumeStatistics{}
+			return v.VolumeStatistics.Deserialize(d)
+		}
+		return nil
+	})
+}
+
 // An object containing additional settings for your VDM configuration as
 // applicable to the Dashboard.
 type DashboardAttributes struct {
@@ -489,6 +1297,32 @@ type DashboardAttributes struct {
 	EngagementMetrics FeatureStatus
 
 	noSmithyDocumentSerde
+}
+
+func (v *DashboardAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DashboardAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DashboardAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.EngagementMetrics != "" {
+		s.WriteString(schemas.DashboardAttributes_EngagementMetrics, string(v.EngagementMetrics))
+	}
+}
+func (v *DashboardAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DashboardAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DashboardAttributes_EngagementMetrics:
+			var ev string
+			if err := d.ReadString(schemas.DashboardAttributes_EngagementMetrics, &ev); err != nil {
+				return err
+			}
+			v.EngagementMetrics = FeatureStatus(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An object containing additional settings for your VDM configuration as
@@ -506,6 +1340,32 @@ type DashboardOptions struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DashboardOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DashboardOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DashboardOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.EngagementMetrics != "" {
+		s.WriteString(schemas.DashboardOptions_EngagementMetrics, string(v.EngagementMetrics))
+	}
+}
+func (v *DashboardOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DashboardOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DashboardOptions_EngagementMetrics:
+			var ev string
+			if err := d.ReadString(schemas.DashboardOptions_EngagementMetrics, &ev); err != nil {
+				return err
+			}
+			v.EngagementMetrics = FeatureStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // Contains information about a dedicated IP address that is associated with your
 // Amazon SES account.
 //
@@ -520,8 +1380,14 @@ type DedicatedIp struct {
 	// This member is required.
 	Ip *string
 
-	// Indicates how complete the dedicated IP warm-up process is. When this value
-	// equals 1, the address has completed the warm-up process and is ready for use.
+	// Indicates the progress of your dedicated IP warm-up:
+	//
+	//   - 0-100 – For standard dedicated IP addresses, this shows the warm-up
+	//   completion percentage. A value of 100 means the IP address is fully warmed up
+	//   and ready for use.
+	//
+	//   - -1 – Appears for IP addresses in managed dedicated pools where Amazon SES
+	//   automatically handles the warm-up process, making the percentage not applicable.
 	//
 	// This member is required.
 	WarmupPercentage *int32
@@ -535,6 +1401,10 @@ type DedicatedIp struct {
 	//   - DONE – The dedicated IP warm-up process is complete, and the IP address is
 	//   ready to use.
 	//
+	//   - NOT_APPLICABLE – The warm-up status doesn't apply to this IP address. This
+	//   status is used for IP addresses in managed dedicated IP pools, where Amazon SES
+	//   automatically handles the warm-up process.
+	//
 	// This member is required.
 	WarmupStatus WarmupStatus
 
@@ -542,6 +1412,50 @@ type DedicatedIp struct {
 	PoolName *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *DedicatedIp) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DedicatedIp)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DedicatedIp) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Ip != nil {
+		s.WriteString(schemas.DedicatedIp_Ip, *v.Ip)
+	}
+	if v.PoolName != nil {
+		s.WriteString(schemas.DedicatedIp_PoolName, *v.PoolName)
+	}
+	if v.WarmupPercentage != nil {
+		s.WriteInt32(schemas.DedicatedIp_WarmupPercentage, *v.WarmupPercentage)
+	}
+	if v.WarmupStatus != "" {
+		s.WriteString(schemas.DedicatedIp_WarmupStatus, string(v.WarmupStatus))
+	}
+}
+func (v *DedicatedIp) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DedicatedIp, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DedicatedIp_Ip:
+			v.Ip = new(string)
+			return d.ReadString(schemas.DedicatedIp_Ip, v.Ip)
+		case schemas.DedicatedIp_PoolName:
+			v.PoolName = new(string)
+			return d.ReadString(schemas.DedicatedIp_PoolName, v.PoolName)
+		case schemas.DedicatedIp_WarmupPercentage:
+			v.WarmupPercentage = new(int32)
+			return d.ReadInt32(schemas.DedicatedIp_WarmupPercentage, v.WarmupPercentage)
+		case schemas.DedicatedIp_WarmupStatus:
+			var ev string
+			if err := d.ReadString(schemas.DedicatedIp_WarmupStatus, &ev); err != nil {
+				return err
+			}
+			v.WarmupStatus = WarmupStatus(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // Contains information about a dedicated IP pool.
@@ -566,6 +1480,60 @@ type DedicatedIpPool struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DedicatedIpPool) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DedicatedIpPool)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DedicatedIpPool) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.PoolName != nil {
+		s.WriteString(schemas.DedicatedIpPool_PoolName, *v.PoolName)
+	}
+	if v.ScalingMode != "" {
+		s.WriteString(schemas.DedicatedIpPool_ScalingMode, string(v.ScalingMode))
+	}
+}
+func (v *DedicatedIpPool) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DedicatedIpPool, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DedicatedIpPool_PoolName:
+			v.PoolName = new(string)
+			return d.ReadString(schemas.DedicatedIpPool_PoolName, v.PoolName)
+		case schemas.DedicatedIpPool_ScalingMode:
+			var ev string
+			if err := d.ReadString(schemas.DedicatedIpPool_ScalingMode, &ev); err != nil {
+				return err
+			}
+			v.ScalingMode = ScalingMode(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
+// Specifies the default signing scheme, in which Amazon SES API v2 doesn't apply
+// S/MIME signing to messages sent with the configuration set.
+type DefaultSigningScheme struct {
+	noSmithyDocumentSerde
+}
+
+func (v *DefaultSigningScheme) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DefaultSigningScheme)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DefaultSigningScheme) SerializeMembers(s smithy.ShapeSerializer) {
+}
+func (v *DefaultSigningScheme) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DefaultSigningScheme, func(s *smithy.Schema) error {
+		switch s {
+		}
+		return nil
+	})
+}
+
 // An object that contains metadata related to a predictive inbox placement test.
 type DeliverabilityTestReport struct {
 
@@ -575,8 +1543,8 @@ type DeliverabilityTestReport struct {
 	// The status of the predictive inbox placement test. If the status is IN_PROGRESS
 	// , then the predictive inbox placement test is currently running. Predictive
 	// inbox placement tests are usually complete within 24 hours of creating the test.
-	// If the status is COMPLETE , then the test is finished, and you can use the
-	// GetDeliverabilityTestReport to view the results of the test.
+	// If the status is COMPLETED , then the test is finished, and you can use the
+	// GetDeliverabilityTestReport operation to view the results of the test.
 	DeliverabilityTestStatus DeliverabilityTestStatus
 
 	// The sender address that you specified for the predictive inbox placement test.
@@ -595,6 +1563,111 @@ type DeliverabilityTestReport struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeliverabilityTestReport) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeliverabilityTestReport)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeliverabilityTestReport) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreateDate != nil {
+		s.WriteTime(schemas.DeliverabilityTestReport_CreateDate, *v.CreateDate)
+	}
+	if v.DeliverabilityTestStatus != "" {
+		s.WriteString(schemas.DeliverabilityTestReport_DeliverabilityTestStatus, string(v.DeliverabilityTestStatus))
+	}
+	if v.FromEmailAddress != nil {
+		s.WriteString(schemas.DeliverabilityTestReport_FromEmailAddress, *v.FromEmailAddress)
+	}
+	if v.ReportId != nil {
+		s.WriteString(schemas.DeliverabilityTestReport_ReportId, *v.ReportId)
+	}
+	if v.ReportName != nil {
+		s.WriteString(schemas.DeliverabilityTestReport_ReportName, *v.ReportName)
+	}
+	if v.Subject != nil {
+		s.WriteString(schemas.DeliverabilityTestReport_Subject, *v.Subject)
+	}
+}
+func (v *DeliverabilityTestReport) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DeliverabilityTestReport, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DeliverabilityTestReport_CreateDate:
+			v.CreateDate = new(time.Time)
+			return d.ReadTime(schemas.DeliverabilityTestReport_CreateDate, v.CreateDate)
+		case schemas.DeliverabilityTestReport_DeliverabilityTestStatus:
+			var ev string
+			if err := d.ReadString(schemas.DeliverabilityTestReport_DeliverabilityTestStatus, &ev); err != nil {
+				return err
+			}
+			v.DeliverabilityTestStatus = DeliverabilityTestStatus(ev)
+			return nil
+		case schemas.DeliverabilityTestReport_FromEmailAddress:
+			v.FromEmailAddress = new(string)
+			return d.ReadString(schemas.DeliverabilityTestReport_FromEmailAddress, v.FromEmailAddress)
+		case schemas.DeliverabilityTestReport_ReportId:
+			v.ReportId = new(string)
+			return d.ReadString(schemas.DeliverabilityTestReport_ReportId, v.ReportId)
+		case schemas.DeliverabilityTestReport_ReportName:
+			v.ReportName = new(string)
+			return d.ReadString(schemas.DeliverabilityTestReport_ReportName, v.ReportName)
+		case schemas.DeliverabilityTestReport_Subject:
+			v.Subject = new(string)
+			return d.ReadString(schemas.DeliverabilityTestReport_Subject, v.Subject)
+		}
+		return nil
+	})
+}
+
+// The delivery attributes that apply to your Amazon SES account in the current
+// Amazon Web Services Region.
+type DeliveryAttributes struct {
+
+	// The shared pool delivery mode for your Amazon SES account in the current Amazon
+	// Web Services Region. This mode applies to email that you send from shared IP
+	// addresses. Can be one of the following:
+	//
+	//   - GLOBAL – Amazon SES delivers from your sending Region first and, when it
+	//   improves your deliverability, also uses Amazon SES shared IP addresses with
+	//   established sending history in other Amazon Web Services Regions within the same
+	//   Amazon Web Services partition.
+	//
+	//   - REGIONAL – Amazon SES delivers your email only from shared IP addresses in
+	//   your sending Region.
+	//
+	// Accounts that start sending in a Region on or after the launch of Global Shared
+	// Delivery use GLOBAL in that Region.
+	SharedPoolDeliveryMode AccountSharedPoolDeliveryMode
+
+	noSmithyDocumentSerde
+}
+
+func (v *DeliveryAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeliveryAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeliveryAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SharedPoolDeliveryMode != "" {
+		s.WriteString(schemas.DeliveryAttributes_SharedPoolDeliveryMode, string(v.SharedPoolDeliveryMode))
+	}
+}
+func (v *DeliveryAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DeliveryAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DeliveryAttributes_SharedPoolDeliveryMode:
+			var ev string
+			if err := d.ReadString(schemas.DeliveryAttributes_SharedPoolDeliveryMode, &ev); err != nil {
+				return err
+			}
+			v.SharedPoolDeliveryMode = AccountSharedPoolDeliveryMode(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // Used to associate a configuration set with a dedicated IP pool.
 type DeliveryOptions struct {
 
@@ -606,14 +1679,81 @@ type DeliveryOptions struct {
 	// The name of the dedicated IP pool to associate with the configuration set.
 	SendingPoolName *string
 
+	// The shared pool delivery mode for email that you send with the configuration
+	// set from shared IP addresses. This setting overrides the shared pool delivery
+	// mode of your account. Can be one of the following:
+	//
+	//   - GLOBAL – Amazon SES delivers from your sending Region first and, when it
+	//   improves your deliverability, also uses Amazon SES shared IP addresses with
+	//   established sending history in other Amazon Web Services Regions within the same
+	//   Amazon Web Services partition.
+	//
+	//   - REGIONAL – Amazon SES delivers your email only from shared IP addresses in
+	//   your sending Region.
+	//
+	//   - ACCOUNT – The configuration set uses the shared pool delivery mode of your
+	//   account.
+	//
+	// If you don't specify a value, the configuration set uses the shared pool
+	// delivery mode of your account.
+	SharedPoolDeliveryMode SharedPoolDeliveryMode
+
 	// Specifies whether messages that use the configuration set are required to use
-	// Transport Layer Security (TLS). If the value is Require , messages are only
-	// delivered if a TLS connection can be established. If the value is Optional ,
+	// Transport Layer Security (TLS). If the value is REQUIRE , messages are only
+	// delivered if a TLS connection can be established. If the value is OPTIONAL ,
 	// messages can be delivered in plain text if a TLS connection can't be
 	// established.
 	TlsPolicy TlsPolicy
 
 	noSmithyDocumentSerde
+}
+
+func (v *DeliveryOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeliveryOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeliveryOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.MaxDeliverySeconds != nil {
+		s.WriteInt64(schemas.DeliveryOptions_MaxDeliverySeconds, *v.MaxDeliverySeconds)
+	}
+	if v.SendingPoolName != nil {
+		s.WriteString(schemas.DeliveryOptions_SendingPoolName, *v.SendingPoolName)
+	}
+	if v.SharedPoolDeliveryMode != "" {
+		s.WriteString(schemas.DeliveryOptions_SharedPoolDeliveryMode, string(v.SharedPoolDeliveryMode))
+	}
+	if v.TlsPolicy != "" {
+		s.WriteString(schemas.DeliveryOptions_TlsPolicy, string(v.TlsPolicy))
+	}
+}
+func (v *DeliveryOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DeliveryOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DeliveryOptions_MaxDeliverySeconds:
+			v.MaxDeliverySeconds = new(int64)
+			return d.ReadInt64(schemas.DeliveryOptions_MaxDeliverySeconds, v.MaxDeliverySeconds)
+		case schemas.DeliveryOptions_SendingPoolName:
+			v.SendingPoolName = new(string)
+			return d.ReadString(schemas.DeliveryOptions_SendingPoolName, v.SendingPoolName)
+		case schemas.DeliveryOptions_SharedPoolDeliveryMode:
+			var ev string
+			if err := d.ReadString(schemas.DeliveryOptions_SharedPoolDeliveryMode, &ev); err != nil {
+				return err
+			}
+			v.SharedPoolDeliveryMode = SharedPoolDeliveryMode(ev)
+			return nil
+		case schemas.DeliveryOptions_TlsPolicy:
+			var ev string
+			if err := d.ReadString(schemas.DeliveryOptions_TlsPolicy, &ev); err != nil {
+				return err
+			}
+			v.TlsPolicy = TlsPolicy(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An object that describes the recipients for an email.
@@ -641,6 +1781,71 @@ type Destination struct {
 	ToAddresses []string
 
 	noSmithyDocumentSerde
+}
+
+func (v *Destination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Destination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Destination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.BccAddresses != nil {
+		serializeEmailAddressList(s, schemas.Destination_BccAddresses, v.BccAddresses)
+	}
+	if v.CcAddresses != nil {
+		serializeEmailAddressList(s, schemas.Destination_CcAddresses, v.CcAddresses)
+	}
+	if v.ToAddresses != nil {
+		serializeEmailAddressList(s, schemas.Destination_ToAddresses, v.ToAddresses)
+	}
+}
+func (v *Destination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Destination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Destination_BccAddresses:
+			return deserializeEmailAddressList(d, schemas.Destination_BccAddresses, &v.BccAddresses)
+		case schemas.Destination_CcAddresses:
+			return deserializeEmailAddressList(d, schemas.Destination_CcAddresses, &v.CcAddresses)
+		case schemas.Destination_ToAddresses:
+			return deserializeEmailAddressList(d, schemas.Destination_ToAddresses, &v.ToAddresses)
+		}
+		return nil
+	})
+}
+
+// An object that contains configuration details of multi-region endpoint
+// (global-endpoint).
+type Details struct {
+
+	// A list of route configuration details. Must contain exactly one route
+	// configuration.
+	//
+	// This member is required.
+	RoutesDetails []RouteDetails
+
+	noSmithyDocumentSerde
+}
+
+func (v *Details) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Details)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Details) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.RoutesDetails != nil {
+		serializeRoutesDetails(s, schemas.Details_RoutesDetails, v.RoutesDetails)
+	}
+}
+func (v *Details) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Details, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Details_RoutesDetails:
+			return deserializeRoutesDetails(d, schemas.Details_RoutesDetails, &v.RoutesDetails)
+		}
+		return nil
+	})
 }
 
 // An object that contains information about the DKIM authentication status for an
@@ -676,13 +1881,35 @@ type DkimAttributes struct {
 	//   - EXTERNAL – Indicates that DKIM was configured for the identity by using
 	//   Bring Your Own DKIM (BYODKIM).
 	//
+	//   - AWS_SES_ – Indicates that DKIM was configured for the identity by
+	//   replicating the signing attributes of a parent identity in another Amazon Web
+	//   Services Region, using [Deterministic Easy-DKIM (DEED)]. is the Amazon Web Services Region of the parent
+	//   identity, in uppercase with each hyphen replaced by an underscore. Amazon SES
+	//   uses this format for every Amazon Web Services Region in which it supports DEED.
+	//   For example, a parent identity in us-east-1 is reported as AWS_SES_US_EAST_1 .
+	//
 	// [Easy DKIM]: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/easy-dkim.html
+	// [Deterministic Easy-DKIM (DEED)]: https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dkim-deed.html
 	SigningAttributesOrigin DkimSigningAttributesOrigin
 
 	// If the value is true , then the messages that you send from the identity are
 	// signed using DKIM. If the value is false , then the messages that you send from
 	// the identity aren't DKIM-signed.
 	SigningEnabled bool
+
+	// The hosted zone where Amazon SES publishes the DKIM public key TXT records for
+	// this email identity. This value indicates the DNS zone that customers must
+	// reference when configuring their CNAME records for DKIM authentication.
+	//
+	// When configuring DKIM for your domain, create CNAME records in your DNS that
+	// point to the selectors in this hosted zone. For example:
+	//
+	//     selector1._domainkey.yourdomain.com CNAME selector1.
+	//
+	//     selector2._domainkey.yourdomain.com CNAME selector2.
+	//
+	//     selector3._domainkey.yourdomain.com CNAME selector3.
+	SigningHostedZone *string
 
 	// Describes whether or not Amazon SES has successfully located the DKIM records
 	// in the DNS records for the domain. The status can be one of the following:
@@ -722,9 +1949,119 @@ type DkimAttributes struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DkimAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DkimAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DkimAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CurrentSigningKeyLength != "" {
+		s.WriteString(schemas.DkimAttributes_CurrentSigningKeyLength, string(v.CurrentSigningKeyLength))
+	}
+	if v.LastKeyGenerationTimestamp != nil {
+		s.WriteTime(schemas.DkimAttributes_LastKeyGenerationTimestamp, *v.LastKeyGenerationTimestamp)
+	}
+	if v.NextSigningKeyLength != "" {
+		s.WriteString(schemas.DkimAttributes_NextSigningKeyLength, string(v.NextSigningKeyLength))
+	}
+	if v.SigningAttributesOrigin != "" {
+		s.WriteString(schemas.DkimAttributes_SigningAttributesOrigin, string(v.SigningAttributesOrigin))
+	}
+	if v.SigningEnabled != false {
+		s.WriteBool(schemas.DkimAttributes_SigningEnabled, v.SigningEnabled)
+	}
+	if v.SigningHostedZone != nil {
+		s.WriteString(schemas.DkimAttributes_SigningHostedZone, *v.SigningHostedZone)
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.DkimAttributes_Status, string(v.Status))
+	}
+	if v.Tokens != nil {
+		serializeDnsTokenList(s, schemas.DkimAttributes_Tokens, v.Tokens)
+	}
+}
+func (v *DkimAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DkimAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DkimAttributes_CurrentSigningKeyLength:
+			var ev string
+			if err := d.ReadString(schemas.DkimAttributes_CurrentSigningKeyLength, &ev); err != nil {
+				return err
+			}
+			v.CurrentSigningKeyLength = DkimSigningKeyLength(ev)
+			return nil
+		case schemas.DkimAttributes_LastKeyGenerationTimestamp:
+			v.LastKeyGenerationTimestamp = new(time.Time)
+			return d.ReadTime(schemas.DkimAttributes_LastKeyGenerationTimestamp, v.LastKeyGenerationTimestamp)
+		case schemas.DkimAttributes_NextSigningKeyLength:
+			var ev string
+			if err := d.ReadString(schemas.DkimAttributes_NextSigningKeyLength, &ev); err != nil {
+				return err
+			}
+			v.NextSigningKeyLength = DkimSigningKeyLength(ev)
+			return nil
+		case schemas.DkimAttributes_SigningAttributesOrigin:
+			var ev string
+			if err := d.ReadString(schemas.DkimAttributes_SigningAttributesOrigin, &ev); err != nil {
+				return err
+			}
+			v.SigningAttributesOrigin = DkimSigningAttributesOrigin(ev)
+			return nil
+		case schemas.DkimAttributes_SigningEnabled:
+			return d.ReadBool(schemas.DkimAttributes_SigningEnabled, &v.SigningEnabled)
+		case schemas.DkimAttributes_SigningHostedZone:
+			v.SigningHostedZone = new(string)
+			return d.ReadString(schemas.DkimAttributes_SigningHostedZone, v.SigningHostedZone)
+		case schemas.DkimAttributes_Status:
+			var ev string
+			if err := d.ReadString(schemas.DkimAttributes_Status, &ev); err != nil {
+				return err
+			}
+			v.Status = DkimStatus(ev)
+			return nil
+		case schemas.DkimAttributes_Tokens:
+			return deserializeDnsTokenList(d, schemas.DkimAttributes_Tokens, &v.Tokens)
+		}
+		return nil
+	})
+}
+
 // An object that contains configuration for Bring Your Own DKIM (BYODKIM), or,
 // for Easy DKIM
 type DkimSigningAttributes struct {
+
+	// The attribute to use for configuring DKIM for the identity depends on the
+	// operation:
+	//
+	//   - For PutEmailIdentityDkimSigningAttributes :
+	//
+	//   - None of the values are allowed - use the [SigningAttributesOrigin]SigningAttributesOrigin parameter
+	//   instead
+	//
+	//   - For CreateEmailIdentity when replicating a parent identity's DKIM
+	//   configuration:
+	//
+	//   - Allowed values: All values except AWS_SES and EXTERNAL
+	//
+	//   - AWS_SES – Configure DKIM for the identity by using Easy DKIM.
+	//
+	//   - EXTERNAL – Configure DKIM for the identity by using Bring Your Own DKIM
+	//   (BYODKIM).
+	//
+	//   - AWS_SES_ – Configure DKIM for the identity by replicating the signing
+	//   attributes of a parent identity in another Amazon Web Services Region, using [Deterministic Easy-DKIM (DEED)]
+	//   . Replace with the Amazon Web Services Region of the parent identity, in
+	//   uppercase with each hyphen replaced by an underscore. You can specify any Amazon
+	//   Web Services Region in which Amazon SES supports DEED. For example, to replicate
+	//   from a parent identity in us-east-1 , specify AWS_SES_US_EAST_1 .
+	//
+	// The parent identity must already exist in the specified Amazon Web Services
+	//   Region and have Easy DKIM configured.
+	//
+	// [SigningAttributesOrigin]: https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_PutEmailIdentityDkimSigningAttributes.html#SES-PutEmailIdentityDkimSigningAttributes-request-SigningAttributesOrigin
+	// [Deterministic Easy-DKIM (DEED)]: https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dkim-deed.html
+	DomainSigningAttributesOrigin DkimSigningAttributesOrigin
 
 	// [Bring Your Own DKIM] A private key that's used to generate a DKIM signature.
 	//
@@ -741,6 +2078,54 @@ type DkimSigningAttributes struct {
 	NextSigningKeyLength DkimSigningKeyLength
 
 	noSmithyDocumentSerde
+}
+
+func (v *DkimSigningAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DkimSigningAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DkimSigningAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DomainSigningAttributesOrigin != "" {
+		s.WriteString(schemas.DkimSigningAttributes_DomainSigningAttributesOrigin, string(v.DomainSigningAttributesOrigin))
+	}
+	if v.DomainSigningPrivateKey != nil {
+		s.WriteString(schemas.DkimSigningAttributes_DomainSigningPrivateKey, *v.DomainSigningPrivateKey)
+	}
+	if v.DomainSigningSelector != nil {
+		s.WriteString(schemas.DkimSigningAttributes_DomainSigningSelector, *v.DomainSigningSelector)
+	}
+	if v.NextSigningKeyLength != "" {
+		s.WriteString(schemas.DkimSigningAttributes_NextSigningKeyLength, string(v.NextSigningKeyLength))
+	}
+}
+func (v *DkimSigningAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DkimSigningAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DkimSigningAttributes_DomainSigningAttributesOrigin:
+			var ev string
+			if err := d.ReadString(schemas.DkimSigningAttributes_DomainSigningAttributesOrigin, &ev); err != nil {
+				return err
+			}
+			v.DomainSigningAttributesOrigin = DkimSigningAttributesOrigin(ev)
+			return nil
+		case schemas.DkimSigningAttributes_DomainSigningPrivateKey:
+			v.DomainSigningPrivateKey = new(string)
+			return d.ReadString(schemas.DkimSigningAttributes_DomainSigningPrivateKey, v.DomainSigningPrivateKey)
+		case schemas.DkimSigningAttributes_DomainSigningSelector:
+			v.DomainSigningSelector = new(string)
+			return d.ReadString(schemas.DkimSigningAttributes_DomainSigningSelector, v.DomainSigningSelector)
+		case schemas.DkimSigningAttributes_NextSigningKeyLength:
+			var ev string
+			if err := d.ReadString(schemas.DkimSigningAttributes_NextSigningKeyLength, &ev); err != nil {
+				return err
+			}
+			v.NextSigningKeyLength = DkimSigningKeyLength(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An object that contains the deliverability data for a specific campaign. This
@@ -806,6 +2191,104 @@ type DomainDeliverabilityCampaign struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DomainDeliverabilityCampaign) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DomainDeliverabilityCampaign)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DomainDeliverabilityCampaign) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CampaignId != nil {
+		s.WriteString(schemas.DomainDeliverabilityCampaign_CampaignId, *v.CampaignId)
+	}
+	if v.DeleteRate != nil {
+		s.WriteFloat64(schemas.DomainDeliverabilityCampaign_DeleteRate, *v.DeleteRate)
+	}
+	if v.Esps != nil {
+		serializeEsps(s, schemas.DomainDeliverabilityCampaign_Esps, v.Esps)
+	}
+	if v.FirstSeenDateTime != nil {
+		s.WriteTime(schemas.DomainDeliverabilityCampaign_FirstSeenDateTime, *v.FirstSeenDateTime)
+	}
+	if v.FromAddress != nil {
+		s.WriteString(schemas.DomainDeliverabilityCampaign_FromAddress, *v.FromAddress)
+	}
+	if v.ImageUrl != nil {
+		s.WriteString(schemas.DomainDeliverabilityCampaign_ImageUrl, *v.ImageUrl)
+	}
+	if v.InboxCount != nil {
+		s.WriteInt64(schemas.DomainDeliverabilityCampaign_InboxCount, *v.InboxCount)
+	}
+	if v.LastSeenDateTime != nil {
+		s.WriteTime(schemas.DomainDeliverabilityCampaign_LastSeenDateTime, *v.LastSeenDateTime)
+	}
+	if v.ProjectedVolume != nil {
+		s.WriteInt64(schemas.DomainDeliverabilityCampaign_ProjectedVolume, *v.ProjectedVolume)
+	}
+	if v.ReadDeleteRate != nil {
+		s.WriteFloat64(schemas.DomainDeliverabilityCampaign_ReadDeleteRate, *v.ReadDeleteRate)
+	}
+	if v.ReadRate != nil {
+		s.WriteFloat64(schemas.DomainDeliverabilityCampaign_ReadRate, *v.ReadRate)
+	}
+	if v.SendingIps != nil {
+		serializeIpList(s, schemas.DomainDeliverabilityCampaign_SendingIps, v.SendingIps)
+	}
+	if v.SpamCount != nil {
+		s.WriteInt64(schemas.DomainDeliverabilityCampaign_SpamCount, *v.SpamCount)
+	}
+	if v.Subject != nil {
+		s.WriteString(schemas.DomainDeliverabilityCampaign_Subject, *v.Subject)
+	}
+}
+func (v *DomainDeliverabilityCampaign) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DomainDeliverabilityCampaign, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DomainDeliverabilityCampaign_CampaignId:
+			v.CampaignId = new(string)
+			return d.ReadString(schemas.DomainDeliverabilityCampaign_CampaignId, v.CampaignId)
+		case schemas.DomainDeliverabilityCampaign_DeleteRate:
+			v.DeleteRate = new(float64)
+			return d.ReadFloat64(schemas.DomainDeliverabilityCampaign_DeleteRate, v.DeleteRate)
+		case schemas.DomainDeliverabilityCampaign_Esps:
+			return deserializeEsps(d, schemas.DomainDeliverabilityCampaign_Esps, &v.Esps)
+		case schemas.DomainDeliverabilityCampaign_FirstSeenDateTime:
+			v.FirstSeenDateTime = new(time.Time)
+			return d.ReadTime(schemas.DomainDeliverabilityCampaign_FirstSeenDateTime, v.FirstSeenDateTime)
+		case schemas.DomainDeliverabilityCampaign_FromAddress:
+			v.FromAddress = new(string)
+			return d.ReadString(schemas.DomainDeliverabilityCampaign_FromAddress, v.FromAddress)
+		case schemas.DomainDeliverabilityCampaign_ImageUrl:
+			v.ImageUrl = new(string)
+			return d.ReadString(schemas.DomainDeliverabilityCampaign_ImageUrl, v.ImageUrl)
+		case schemas.DomainDeliverabilityCampaign_InboxCount:
+			v.InboxCount = new(int64)
+			return d.ReadInt64(schemas.DomainDeliverabilityCampaign_InboxCount, v.InboxCount)
+		case schemas.DomainDeliverabilityCampaign_LastSeenDateTime:
+			v.LastSeenDateTime = new(time.Time)
+			return d.ReadTime(schemas.DomainDeliverabilityCampaign_LastSeenDateTime, v.LastSeenDateTime)
+		case schemas.DomainDeliverabilityCampaign_ProjectedVolume:
+			v.ProjectedVolume = new(int64)
+			return d.ReadInt64(schemas.DomainDeliverabilityCampaign_ProjectedVolume, v.ProjectedVolume)
+		case schemas.DomainDeliverabilityCampaign_ReadDeleteRate:
+			v.ReadDeleteRate = new(float64)
+			return d.ReadFloat64(schemas.DomainDeliverabilityCampaign_ReadDeleteRate, v.ReadDeleteRate)
+		case schemas.DomainDeliverabilityCampaign_ReadRate:
+			v.ReadRate = new(float64)
+			return d.ReadFloat64(schemas.DomainDeliverabilityCampaign_ReadRate, v.ReadRate)
+		case schemas.DomainDeliverabilityCampaign_SendingIps:
+			return deserializeIpList(d, schemas.DomainDeliverabilityCampaign_SendingIps, &v.SendingIps)
+		case schemas.DomainDeliverabilityCampaign_SpamCount:
+			v.SpamCount = new(int64)
+			return d.ReadInt64(schemas.DomainDeliverabilityCampaign_SpamCount, v.SpamCount)
+		case schemas.DomainDeliverabilityCampaign_Subject:
+			v.Subject = new(string)
+			return d.ReadString(schemas.DomainDeliverabilityCampaign_Subject, v.Subject)
+		}
+		return nil
+	})
+}
+
 // An object that contains information about the Deliverability dashboard
 // subscription for a verified domain that you use to send email and currently has
 // an active Deliverability dashboard subscription. If a Deliverability dashboard
@@ -825,6 +2308,42 @@ type DomainDeliverabilityTrackingOption struct {
 	SubscriptionStartDate *time.Time
 
 	noSmithyDocumentSerde
+}
+
+func (v *DomainDeliverabilityTrackingOption) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DomainDeliverabilityTrackingOption)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DomainDeliverabilityTrackingOption) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Domain != nil {
+		s.WriteString(schemas.DomainDeliverabilityTrackingOption_Domain, *v.Domain)
+	}
+	if v.InboxPlacementTrackingOption != nil {
+		s.WriteStruct(schemas.DomainDeliverabilityTrackingOption_InboxPlacementTrackingOption)
+		v.InboxPlacementTrackingOption.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.SubscriptionStartDate != nil {
+		s.WriteTime(schemas.DomainDeliverabilityTrackingOption_SubscriptionStartDate, *v.SubscriptionStartDate)
+	}
+}
+func (v *DomainDeliverabilityTrackingOption) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DomainDeliverabilityTrackingOption, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DomainDeliverabilityTrackingOption_Domain:
+			v.Domain = new(string)
+			return d.ReadString(schemas.DomainDeliverabilityTrackingOption_Domain, v.Domain)
+		case schemas.DomainDeliverabilityTrackingOption_InboxPlacementTrackingOption:
+			v.InboxPlacementTrackingOption = &InboxPlacementTrackingOption{}
+			return v.InboxPlacementTrackingOption.Deserialize(d)
+		case schemas.DomainDeliverabilityTrackingOption_SubscriptionStartDate:
+			v.SubscriptionStartDate = new(time.Time)
+			return d.ReadTime(schemas.DomainDeliverabilityTrackingOption_SubscriptionStartDate, v.SubscriptionStartDate)
+		}
+		return nil
+	})
 }
 
 // An object that contains inbox placement data for email sent from one of your
@@ -853,11 +2372,186 @@ type DomainIspPlacement struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DomainIspPlacement) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DomainIspPlacement)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DomainIspPlacement) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.InboxPercentage != nil {
+		s.WriteFloat64(schemas.DomainIspPlacement_InboxPercentage, *v.InboxPercentage)
+	}
+	if v.InboxRawCount != nil {
+		s.WriteInt64(schemas.DomainIspPlacement_InboxRawCount, *v.InboxRawCount)
+	}
+	if v.IspName != nil {
+		s.WriteString(schemas.DomainIspPlacement_IspName, *v.IspName)
+	}
+	if v.SpamPercentage != nil {
+		s.WriteFloat64(schemas.DomainIspPlacement_SpamPercentage, *v.SpamPercentage)
+	}
+	if v.SpamRawCount != nil {
+		s.WriteInt64(schemas.DomainIspPlacement_SpamRawCount, *v.SpamRawCount)
+	}
+}
+func (v *DomainIspPlacement) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DomainIspPlacement, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DomainIspPlacement_InboxPercentage:
+			v.InboxPercentage = new(float64)
+			return d.ReadFloat64(schemas.DomainIspPlacement_InboxPercentage, v.InboxPercentage)
+		case schemas.DomainIspPlacement_InboxRawCount:
+			v.InboxRawCount = new(int64)
+			return d.ReadInt64(schemas.DomainIspPlacement_InboxRawCount, v.InboxRawCount)
+		case schemas.DomainIspPlacement_IspName:
+			v.IspName = new(string)
+			return d.ReadString(schemas.DomainIspPlacement_IspName, v.IspName)
+		case schemas.DomainIspPlacement_SpamPercentage:
+			v.SpamPercentage = new(float64)
+			return d.ReadFloat64(schemas.DomainIspPlacement_SpamPercentage, v.SpamPercentage)
+		case schemas.DomainIspPlacement_SpamRawCount:
+			v.SpamRawCount = new(int64)
+			return d.ReadInt64(schemas.DomainIspPlacement_SpamRawCount, v.SpamRawCount)
+		}
+		return nil
+	})
+}
+
+// Contains individual validation checks performed on an email address.
+type EmailAddressInsightsMailboxEvaluations struct {
+
+	// Checks that the domain exists, has valid DNS records, and is conﬁgured to
+	// receive email.
+	HasValidDnsRecords *EmailAddressInsightsVerdict
+
+	// Checks that the email address follows proper RFC standards and contains valid
+	// characters in the correct format.
+	HasValidSyntax *EmailAddressInsightsVerdict
+
+	// Checks disposable or temporary email addresses that could negatively impact
+	// your sender reputation.
+	IsDisposable *EmailAddressInsightsVerdict
+
+	// Checks if the input appears to be random text.
+	IsRandomInput *EmailAddressInsightsVerdict
+
+	// Identiﬁes role-based addresses (such as admin@, support@, or info@) that may
+	// have lower engagement rates.
+	IsRoleAddress *EmailAddressInsightsVerdict
+
+	// Checks that the mailbox exists and can receive messages without actually
+	// sending an email.
+	MailboxExists *EmailAddressInsightsVerdict
+
+	noSmithyDocumentSerde
+}
+
+func (v *EmailAddressInsightsMailboxEvaluations) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EmailAddressInsightsMailboxEvaluations)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EmailAddressInsightsMailboxEvaluations) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.HasValidDnsRecords != nil {
+		s.WriteStruct(schemas.EmailAddressInsightsMailboxEvaluations_HasValidDnsRecords)
+		v.HasValidDnsRecords.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.HasValidSyntax != nil {
+		s.WriteStruct(schemas.EmailAddressInsightsMailboxEvaluations_HasValidSyntax)
+		v.HasValidSyntax.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.IsDisposable != nil {
+		s.WriteStruct(schemas.EmailAddressInsightsMailboxEvaluations_IsDisposable)
+		v.IsDisposable.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.IsRandomInput != nil {
+		s.WriteStruct(schemas.EmailAddressInsightsMailboxEvaluations_IsRandomInput)
+		v.IsRandomInput.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.IsRoleAddress != nil {
+		s.WriteStruct(schemas.EmailAddressInsightsMailboxEvaluations_IsRoleAddress)
+		v.IsRoleAddress.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.MailboxExists != nil {
+		s.WriteStruct(schemas.EmailAddressInsightsMailboxEvaluations_MailboxExists)
+		v.MailboxExists.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *EmailAddressInsightsMailboxEvaluations) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EmailAddressInsightsMailboxEvaluations, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EmailAddressInsightsMailboxEvaluations_HasValidDnsRecords:
+			v.HasValidDnsRecords = &EmailAddressInsightsVerdict{}
+			return v.HasValidDnsRecords.Deserialize(d)
+		case schemas.EmailAddressInsightsMailboxEvaluations_HasValidSyntax:
+			v.HasValidSyntax = &EmailAddressInsightsVerdict{}
+			return v.HasValidSyntax.Deserialize(d)
+		case schemas.EmailAddressInsightsMailboxEvaluations_IsDisposable:
+			v.IsDisposable = &EmailAddressInsightsVerdict{}
+			return v.IsDisposable.Deserialize(d)
+		case schemas.EmailAddressInsightsMailboxEvaluations_IsRandomInput:
+			v.IsRandomInput = &EmailAddressInsightsVerdict{}
+			return v.IsRandomInput.Deserialize(d)
+		case schemas.EmailAddressInsightsMailboxEvaluations_IsRoleAddress:
+			v.IsRoleAddress = &EmailAddressInsightsVerdict{}
+			return v.IsRoleAddress.Deserialize(d)
+		case schemas.EmailAddressInsightsMailboxEvaluations_MailboxExists:
+			v.MailboxExists = &EmailAddressInsightsVerdict{}
+			return v.MailboxExists.Deserialize(d)
+		}
+		return nil
+	})
+}
+
+// Contains the overall validation verdict for an email address.
+type EmailAddressInsightsVerdict struct {
+
+	// The confidence level of the validation verdict.
+	ConfidenceVerdict EmailAddressInsightsConfidenceVerdict
+
+	noSmithyDocumentSerde
+}
+
+func (v *EmailAddressInsightsVerdict) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EmailAddressInsightsVerdict)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EmailAddressInsightsVerdict) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ConfidenceVerdict != "" {
+		s.WriteString(schemas.EmailAddressInsightsVerdict_ConfidenceVerdict, string(v.ConfidenceVerdict))
+	}
+}
+func (v *EmailAddressInsightsVerdict) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EmailAddressInsightsVerdict, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EmailAddressInsightsVerdict_ConfidenceVerdict:
+			var ev string
+			if err := d.ReadString(schemas.EmailAddressInsightsVerdict_ConfidenceVerdict, &ev); err != nil {
+				return err
+			}
+			v.ConfidenceVerdict = EmailAddressInsightsConfidenceVerdict(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object that defines the entire content of the email, including the message
-// headers and the body content. You can create a simple email message, in which
-// you specify the subject and the text and HTML versions of the message body. You
-// can also create raw messages, in which you specify a complete MIME-formatted
-// message. Raw messages can include attachments and custom headers.
+// headers, body content, and attachments. For a simple email message, you specify
+// the subject and provide both text and HTML versions of the message body. You can
+// also add attachments to simple and templated messages. For a raw message, you
+// provide a complete MIME-formatted message, which can include custom headers and
+// attachments.
 type EmailContent struct {
 
 	// The raw email message. The message has to meet the following criteria:
@@ -886,13 +2580,54 @@ type EmailContent struct {
 	// [RFC 5321]: https://tools.ietf.org/html/rfc5321
 	Raw *RawMessage
 
-	// The simple email message. The message consists of a subject and a message body.
+	// The simple email message. The message consists of a subject, message body and
+	// attachments list.
 	Simple *Message
 
 	// The template to use for the email message.
 	Template *Template
 
 	noSmithyDocumentSerde
+}
+
+func (v *EmailContent) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EmailContent)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EmailContent) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Raw != nil {
+		s.WriteStruct(schemas.EmailContent_Raw)
+		v.Raw.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Simple != nil {
+		s.WriteStruct(schemas.EmailContent_Simple)
+		v.Simple.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Template != nil {
+		s.WriteStruct(schemas.EmailContent_Template)
+		v.Template.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *EmailContent) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EmailContent, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EmailContent_Raw:
+			v.Raw = &RawMessage{}
+			return v.Raw.Deserialize(d)
+		case schemas.EmailContent_Simple:
+			v.Simple = &Message{}
+			return v.Simple.Deserialize(d)
+		case schemas.EmailContent_Template:
+			v.Template = &Template{}
+			return v.Template.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An email's insights contain metadata and delivery information about a specific
@@ -909,6 +2644,39 @@ type EmailInsights struct {
 	Isp *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *EmailInsights) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EmailInsights)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EmailInsights) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Destination != nil {
+		s.WriteString(schemas.EmailInsights_Destination, *v.Destination)
+	}
+	if v.Events != nil {
+		serializeInsightsEvents(s, schemas.EmailInsights_Events, v.Events)
+	}
+	if v.Isp != nil {
+		s.WriteString(schemas.EmailInsights_Isp, *v.Isp)
+	}
+}
+func (v *EmailInsights) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EmailInsights, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EmailInsights_Destination:
+			v.Destination = new(string)
+			return d.ReadString(schemas.EmailInsights_Destination, v.Destination)
+		case schemas.EmailInsights_Events:
+			return deserializeInsightsEvents(d, schemas.EmailInsights_Events, &v.Events)
+		case schemas.EmailInsights_Isp:
+			v.Isp = new(string)
+			return d.ReadString(schemas.EmailInsights_Isp, v.Isp)
+		}
+		return nil
+	})
 }
 
 // The content of the email, composed of a subject line, an HTML part, and a
@@ -928,6 +2696,40 @@ type EmailTemplateContent struct {
 	noSmithyDocumentSerde
 }
 
+func (v *EmailTemplateContent) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EmailTemplateContent)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EmailTemplateContent) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Html != nil {
+		s.WriteString(schemas.EmailTemplateContent_Html, *v.Html)
+	}
+	if v.Subject != nil {
+		s.WriteString(schemas.EmailTemplateContent_Subject, *v.Subject)
+	}
+	if v.Text != nil {
+		s.WriteString(schemas.EmailTemplateContent_Text, *v.Text)
+	}
+}
+func (v *EmailTemplateContent) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EmailTemplateContent, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EmailTemplateContent_Html:
+			v.Html = new(string)
+			return d.ReadString(schemas.EmailTemplateContent_Html, v.Html)
+		case schemas.EmailTemplateContent_Subject:
+			v.Subject = new(string)
+			return d.ReadString(schemas.EmailTemplateContent_Subject, v.Subject)
+		case schemas.EmailTemplateContent_Text:
+			v.Text = new(string)
+			return d.ReadString(schemas.EmailTemplateContent_Text, v.Text)
+		}
+		return nil
+	})
+}
+
 // Contains information about an email template.
 type EmailTemplateMetadata struct {
 
@@ -938,6 +2740,34 @@ type EmailTemplateMetadata struct {
 	TemplateName *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *EmailTemplateMetadata) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EmailTemplateMetadata)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EmailTemplateMetadata) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreatedTimestamp != nil {
+		s.WriteTime(schemas.EmailTemplateMetadata_CreatedTimestamp, *v.CreatedTimestamp)
+	}
+	if v.TemplateName != nil {
+		s.WriteString(schemas.EmailTemplateMetadata_TemplateName, *v.TemplateName)
+	}
+}
+func (v *EmailTemplateMetadata) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EmailTemplateMetadata, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EmailTemplateMetadata_CreatedTimestamp:
+			v.CreatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.EmailTemplateMetadata_CreatedTimestamp, v.CreatedTimestamp)
+		case schemas.EmailTemplateMetadata_TemplateName:
+			v.TemplateName = new(string)
+			return d.ReadString(schemas.EmailTemplateMetadata_TemplateName, v.TemplateName)
+		}
+		return nil
+	})
 }
 
 // An object that defines an Amazon EventBridge destination for email events. You
@@ -952,6 +2782,28 @@ type EventBridgeDestination struct {
 	EventBusArn *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *EventBridgeDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EventBridgeDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EventBridgeDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.EventBusArn != nil {
+		s.WriteString(schemas.EventBridgeDestination_EventBusArn, *v.EventBusArn)
+	}
+}
+func (v *EventBridgeDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EventBridgeDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EventBridgeDestination_EventBusArn:
+			v.EventBusArn = new(string)
+			return d.ReadString(schemas.EventBridgeDestination_EventBusArn, v.EventBusArn)
+		}
+		return nil
+	})
 }
 
 // In the Amazon SES API v2, events include message sends, deliveries, opens,
@@ -989,8 +2841,7 @@ type EventDestination struct {
 	//   - RENDERING_FAILURE - The email wasn't sent because of a template rendering
 	//   issue. This event type can occur when template data is missing, or when there is
 	//   a mismatch between template parameters and data. (This event type only occurs
-	//   when you send email using the [SendTemplatedEmail]SendTemplatedEmail or [SendBulkTemplatedEmail]SendBulkTemplatedEmail API
-	//   operations.)
+	//   when you send email using the [SendEmail]SendEmail or [SendBulkEmail]SendBulkEmail API operations.)
 	//
 	//   - DELIVERY_DELAY - The email couldn't be delivered to the recipient’s mail
 	//   server because a temporary issue occurred. Delivery delays can occur, for
@@ -1001,9 +2852,9 @@ type EventDestination struct {
 	//   updated their subscription preferences by clicking on an unsubscribe link as
 	//   part of your [subscription management].
 	//
-	// [SendTemplatedEmail]: https://docs.aws.amazon.com/ses/latest/APIReference/API_SendTemplatedEmail.html
 	// [subscription management]: https://docs.aws.amazon.com/ses/latest/dg/sending-email-subscription-management.html
-	// [SendBulkTemplatedEmail]: https://docs.aws.amazon.com/ses/latest/APIReference/API_SendBulkTemplatedEmail.html
+	// [SendBulkEmail]: https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendBulkEmail.html
+	// [SendEmail]: https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html
 	//
 	// This member is required.
 	MatchingEventTypes []EventType
@@ -1049,6 +2900,78 @@ type EventDestination struct {
 	SnsDestination *SnsDestination
 
 	noSmithyDocumentSerde
+}
+
+func (v *EventDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EventDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EventDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CloudWatchDestination != nil {
+		s.WriteStruct(schemas.EventDestination_CloudWatchDestination)
+		v.CloudWatchDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Enabled != false {
+		s.WriteBool(schemas.EventDestination_Enabled, v.Enabled)
+	}
+	if v.EventBridgeDestination != nil {
+		s.WriteStruct(schemas.EventDestination_EventBridgeDestination)
+		v.EventBridgeDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.KinesisFirehoseDestination != nil {
+		s.WriteStruct(schemas.EventDestination_KinesisFirehoseDestination)
+		v.KinesisFirehoseDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.MatchingEventTypes != nil {
+		serializeEventTypes(s, schemas.EventDestination_MatchingEventTypes, v.MatchingEventTypes)
+	}
+	if v.Name != nil {
+		s.WriteString(schemas.EventDestination_Name, *v.Name)
+	}
+	if v.PinpointDestination != nil {
+		s.WriteStruct(schemas.EventDestination_PinpointDestination)
+		v.PinpointDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.SnsDestination != nil {
+		s.WriteStruct(schemas.EventDestination_SnsDestination)
+		v.SnsDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *EventDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EventDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EventDestination_CloudWatchDestination:
+			v.CloudWatchDestination = &CloudWatchDestination{}
+			return v.CloudWatchDestination.Deserialize(d)
+		case schemas.EventDestination_Enabled:
+			return d.ReadBool(schemas.EventDestination_Enabled, &v.Enabled)
+		case schemas.EventDestination_EventBridgeDestination:
+			v.EventBridgeDestination = &EventBridgeDestination{}
+			return v.EventBridgeDestination.Deserialize(d)
+		case schemas.EventDestination_KinesisFirehoseDestination:
+			v.KinesisFirehoseDestination = &KinesisFirehoseDestination{}
+			return v.KinesisFirehoseDestination.Deserialize(d)
+		case schemas.EventDestination_MatchingEventTypes:
+			return deserializeEventTypes(d, schemas.EventDestination_MatchingEventTypes, &v.MatchingEventTypes)
+		case schemas.EventDestination_Name:
+			v.Name = new(string)
+			return d.ReadString(schemas.EventDestination_Name, v.Name)
+		case schemas.EventDestination_PinpointDestination:
+			v.PinpointDestination = &PinpointDestination{}
+			return v.PinpointDestination.Deserialize(d)
+		case schemas.EventDestination_SnsDestination:
+			v.SnsDestination = &SnsDestination{}
+			return v.SnsDestination.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An object that defines the event destination. Specifically, it defines which
@@ -1099,6 +3022,72 @@ type EventDestinationDefinition struct {
 	noSmithyDocumentSerde
 }
 
+func (v *EventDestinationDefinition) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EventDestinationDefinition)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EventDestinationDefinition) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CloudWatchDestination != nil {
+		s.WriteStruct(schemas.EventDestinationDefinition_CloudWatchDestination)
+		v.CloudWatchDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Enabled != false {
+		s.WriteBool(schemas.EventDestinationDefinition_Enabled, v.Enabled)
+	}
+	if v.EventBridgeDestination != nil {
+		s.WriteStruct(schemas.EventDestinationDefinition_EventBridgeDestination)
+		v.EventBridgeDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.KinesisFirehoseDestination != nil {
+		s.WriteStruct(schemas.EventDestinationDefinition_KinesisFirehoseDestination)
+		v.KinesisFirehoseDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.MatchingEventTypes != nil {
+		serializeEventTypes(s, schemas.EventDestinationDefinition_MatchingEventTypes, v.MatchingEventTypes)
+	}
+	if v.PinpointDestination != nil {
+		s.WriteStruct(schemas.EventDestinationDefinition_PinpointDestination)
+		v.PinpointDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.SnsDestination != nil {
+		s.WriteStruct(schemas.EventDestinationDefinition_SnsDestination)
+		v.SnsDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *EventDestinationDefinition) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EventDestinationDefinition, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EventDestinationDefinition_CloudWatchDestination:
+			v.CloudWatchDestination = &CloudWatchDestination{}
+			return v.CloudWatchDestination.Deserialize(d)
+		case schemas.EventDestinationDefinition_Enabled:
+			return d.ReadBool(schemas.EventDestinationDefinition_Enabled, &v.Enabled)
+		case schemas.EventDestinationDefinition_EventBridgeDestination:
+			v.EventBridgeDestination = &EventBridgeDestination{}
+			return v.EventBridgeDestination.Deserialize(d)
+		case schemas.EventDestinationDefinition_KinesisFirehoseDestination:
+			v.KinesisFirehoseDestination = &KinesisFirehoseDestination{}
+			return v.KinesisFirehoseDestination.Deserialize(d)
+		case schemas.EventDestinationDefinition_MatchingEventTypes:
+			return deserializeEventTypes(d, schemas.EventDestinationDefinition_MatchingEventTypes, &v.MatchingEventTypes)
+		case schemas.EventDestinationDefinition_PinpointDestination:
+			v.PinpointDestination = &PinpointDestination{}
+			return v.PinpointDestination.Deserialize(d)
+		case schemas.EventDestinationDefinition_SnsDestination:
+			v.SnsDestination = &SnsDestination{}
+			return v.SnsDestination.Deserialize(d)
+		}
+		return nil
+	})
+}
+
 //	Contains a Bounce object if the event type is BOUNCE . Contains a Complaint
 //
 // object if the event type is COMPLAINT .
@@ -1111,6 +3100,38 @@ type EventDetails struct {
 	Complaint *Complaint
 
 	noSmithyDocumentSerde
+}
+
+func (v *EventDetails) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.EventDetails)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *EventDetails) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Bounce != nil {
+		s.WriteStruct(schemas.EventDetails_Bounce)
+		v.Bounce.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Complaint != nil {
+		s.WriteStruct(schemas.EventDetails_Complaint)
+		v.Complaint.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *EventDetails) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.EventDetails, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.EventDetails_Bounce:
+			v.Bounce = &Bounce{}
+			return v.Bounce.Deserialize(d)
+		case schemas.EventDetails_Complaint:
+			v.Complaint = &Complaint{}
+			return v.Complaint.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An object that contains details about the data source of the export job. It can
@@ -1127,7 +3148,45 @@ type ExportDataSource struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ExportDataSource) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ExportDataSource)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ExportDataSource) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.MessageInsightsDataSource != nil {
+		s.WriteStruct(schemas.ExportDataSource_MessageInsightsDataSource)
+		v.MessageInsightsDataSource.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.MetricsDataSource != nil {
+		s.WriteStruct(schemas.ExportDataSource_MetricsDataSource)
+		v.MetricsDataSource.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *ExportDataSource) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ExportDataSource, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ExportDataSource_MessageInsightsDataSource:
+			v.MessageInsightsDataSource = &MessageInsightsDataSource{}
+			return v.MessageInsightsDataSource.Deserialize(d)
+		case schemas.ExportDataSource_MetricsDataSource:
+			v.MetricsDataSource = &MetricsDataSource{}
+			return v.MetricsDataSource.Deserialize(d)
+		}
+		return nil
+	})
+}
+
 // An object that contains details about the destination of the export job.
+//
+// When you create an export job, specify only DataFormat . SES writes the export
+// file to a location that it manages. After the job completes, call GetExportJob
+// and use the S3Url that's returned to download the file. To store a copy in your
+// own Amazon S3 bucket, upload the downloaded file to your bucket. Do not include
+// S3Url in the CreateExportJob request.
 type ExportDestination struct {
 
 	// The data format of the final export job file, can be one of the following:
@@ -1140,9 +3199,46 @@ type ExportDestination struct {
 	DataFormat DataFormat
 
 	// An Amazon S3 pre-signed URL that points to the generated export file.
+	//
+	// SES sets this value. It's returned only in the GetExportJob response, after the
+	// export job status is COMPLETED . The URL expires five minutes after GetExportJob
+	// returns it. Call GetExportJob again to get a new URL. If you include this field
+	// in a CreateExportJob request, the request fails with a BadRequestException .
 	S3Url *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *ExportDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ExportDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ExportDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DataFormat != "" {
+		s.WriteString(schemas.ExportDestination_DataFormat, string(v.DataFormat))
+	}
+	if v.S3Url != nil {
+		s.WriteString(schemas.ExportDestination_S3Url, *v.S3Url)
+	}
+}
+func (v *ExportDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ExportDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ExportDestination_DataFormat:
+			var ev string
+			if err := d.ReadString(schemas.ExportDestination_DataFormat, &ev); err != nil {
+				return err
+			}
+			v.DataFormat = DataFormat(ev)
+			return nil
+		case schemas.ExportDestination_S3Url:
+			v.S3Url = new(string)
+			return d.ReadString(schemas.ExportDestination_S3Url, v.S3Url)
+		}
+		return nil
+	})
 }
 
 // A summary of the export job.
@@ -1164,6 +3260,60 @@ type ExportJobSummary struct {
 	JobStatus JobStatus
 
 	noSmithyDocumentSerde
+}
+
+func (v *ExportJobSummary) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ExportJobSummary)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ExportJobSummary) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CompletedTimestamp != nil {
+		s.WriteTime(schemas.ExportJobSummary_CompletedTimestamp, *v.CompletedTimestamp)
+	}
+	if v.CreatedTimestamp != nil {
+		s.WriteTime(schemas.ExportJobSummary_CreatedTimestamp, *v.CreatedTimestamp)
+	}
+	if v.ExportSourceType != "" {
+		s.WriteString(schemas.ExportJobSummary_ExportSourceType, string(v.ExportSourceType))
+	}
+	if v.JobId != nil {
+		s.WriteString(schemas.ExportJobSummary_JobId, *v.JobId)
+	}
+	if v.JobStatus != "" {
+		s.WriteString(schemas.ExportJobSummary_JobStatus, string(v.JobStatus))
+	}
+}
+func (v *ExportJobSummary) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ExportJobSummary, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ExportJobSummary_CompletedTimestamp:
+			v.CompletedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.ExportJobSummary_CompletedTimestamp, v.CompletedTimestamp)
+		case schemas.ExportJobSummary_CreatedTimestamp:
+			v.CreatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.ExportJobSummary_CreatedTimestamp, v.CreatedTimestamp)
+		case schemas.ExportJobSummary_ExportSourceType:
+			var ev string
+			if err := d.ReadString(schemas.ExportJobSummary_ExportSourceType, &ev); err != nil {
+				return err
+			}
+			v.ExportSourceType = ExportSourceType(ev)
+			return nil
+		case schemas.ExportJobSummary_JobId:
+			v.JobId = new(string)
+			return d.ReadString(schemas.ExportJobSummary_JobId, v.JobId)
+		case schemas.ExportJobSummary_JobStatus:
+			var ev string
+			if err := d.ReadString(schemas.ExportJobSummary_JobStatus, &ev); err != nil {
+				return err
+			}
+			v.JobStatus = JobStatus(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An object that contains a mapping between a Metric and MetricAggregation .
@@ -1223,6 +3373,42 @@ type ExportMetric struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ExportMetric) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ExportMetric)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ExportMetric) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Aggregation != "" {
+		s.WriteString(schemas.ExportMetric_Aggregation, string(v.Aggregation))
+	}
+	if v.Name != "" {
+		s.WriteString(schemas.ExportMetric_Name, string(v.Name))
+	}
+}
+func (v *ExportMetric) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ExportMetric, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ExportMetric_Aggregation:
+			var ev string
+			if err := d.ReadString(schemas.ExportMetric_Aggregation, &ev); err != nil {
+				return err
+			}
+			v.Aggregation = MetricAggregation(ev)
+			return nil
+		case schemas.ExportMetric_Name:
+			var ev string
+			if err := d.ReadString(schemas.ExportMetric_Name, &ev); err != nil {
+				return err
+			}
+			v.Name = Metric(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // Statistics about the execution of an export job.
 type ExportStatistics struct {
 
@@ -1237,6 +3423,34 @@ type ExportStatistics struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ExportStatistics) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ExportStatistics)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ExportStatistics) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ExportedRecordsCount != nil {
+		s.WriteInt32(schemas.ExportStatistics_ExportedRecordsCount, *v.ExportedRecordsCount)
+	}
+	if v.ProcessedRecordsCount != nil {
+		s.WriteInt32(schemas.ExportStatistics_ProcessedRecordsCount, *v.ProcessedRecordsCount)
+	}
+}
+func (v *ExportStatistics) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ExportStatistics, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ExportStatistics_ExportedRecordsCount:
+			v.ExportedRecordsCount = new(int32)
+			return d.ReadInt32(schemas.ExportStatistics_ExportedRecordsCount, v.ExportedRecordsCount)
+		case schemas.ExportStatistics_ProcessedRecordsCount:
+			v.ProcessedRecordsCount = new(int32)
+			return d.ReadInt32(schemas.ExportStatistics_ProcessedRecordsCount, v.ProcessedRecordsCount)
+		}
+		return nil
+	})
+}
+
 // An object that contains the failure details about a job.
 type FailureInfo struct {
 
@@ -1248,6 +3462,34 @@ type FailureInfo struct {
 	FailedRecordsS3Url *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *FailureInfo) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.FailureInfo)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *FailureInfo) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ErrorMessage != nil {
+		s.WriteString(schemas.FailureInfo_ErrorMessage, *v.ErrorMessage)
+	}
+	if v.FailedRecordsS3Url != nil {
+		s.WriteString(schemas.FailureInfo_FailedRecordsS3Url, *v.FailedRecordsS3Url)
+	}
+}
+func (v *FailureInfo) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.FailureInfo, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.FailureInfo_ErrorMessage:
+			v.ErrorMessage = new(string)
+			return d.ReadString(schemas.FailureInfo_ErrorMessage, v.ErrorMessage)
+		case schemas.FailureInfo_FailedRecordsS3Url:
+			v.FailedRecordsS3Url = new(string)
+			return d.ReadString(schemas.FailureInfo_FailedRecordsS3Url, v.FailedRecordsS3Url)
+		}
+		return nil
+	})
 }
 
 // An object containing additional settings for your VDM configuration as
@@ -1265,6 +3507,32 @@ type GuardianAttributes struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GuardianAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GuardianAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GuardianAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.OptimizedSharedDelivery != "" {
+		s.WriteString(schemas.GuardianAttributes_OptimizedSharedDelivery, string(v.OptimizedSharedDelivery))
+	}
+}
+func (v *GuardianAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GuardianAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GuardianAttributes_OptimizedSharedDelivery:
+			var ev string
+			if err := d.ReadString(schemas.GuardianAttributes_OptimizedSharedDelivery, &ev); err != nil {
+				return err
+			}
+			v.OptimizedSharedDelivery = FeatureStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object containing additional settings for your VDM configuration as
 // applicable to the Guardian.
 type GuardianOptions struct {
@@ -1280,6 +3548,97 @@ type GuardianOptions struct {
 	OptimizedSharedDelivery FeatureStatus
 
 	noSmithyDocumentSerde
+}
+
+func (v *GuardianOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GuardianOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GuardianOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.OptimizedSharedDelivery != "" {
+		s.WriteString(schemas.GuardianOptions_OptimizedSharedDelivery, string(v.OptimizedSharedDelivery))
+	}
+}
+func (v *GuardianOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GuardianOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GuardianOptions_OptimizedSharedDelivery:
+			var ev string
+			if err := d.ReadString(schemas.GuardianOptions_OptimizedSharedDelivery, &ev); err != nil {
+				return err
+			}
+			v.OptimizedSharedDelivery = FeatureStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
+// An object that contains information about an S/MIME certificate that's
+// associated with an email identity.
+type IdentityCertificate struct {
+
+	// The Amazon Resource Name (ARN) of the Certificate Manager (ACM) certificate
+	// that's associated with the email identity.
+	CertificateArn *string
+
+	// The timestamp after which the certificate is no longer valid.
+	CertificateExpiryTime *time.Time
+
+	// The email address that the certificate applies to.
+	FromAddress *string
+
+	// The status of the certificate association. A status of ACTIVE indicates that
+	// the certificate is ready to use for signing.
+	Status IdentityCertificateStatus
+
+	noSmithyDocumentSerde
+}
+
+func (v *IdentityCertificate) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.IdentityCertificate)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *IdentityCertificate) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CertificateArn != nil {
+		s.WriteString(schemas.IdentityCertificate_CertificateArn, *v.CertificateArn)
+	}
+	if v.CertificateExpiryTime != nil {
+		s.WriteTime(schemas.IdentityCertificate_CertificateExpiryTime, *v.CertificateExpiryTime)
+	}
+	if v.FromAddress != nil {
+		s.WriteString(schemas.IdentityCertificate_FromAddress, *v.FromAddress)
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.IdentityCertificate_Status, string(v.Status))
+	}
+}
+func (v *IdentityCertificate) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.IdentityCertificate, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.IdentityCertificate_CertificateArn:
+			v.CertificateArn = new(string)
+			return d.ReadString(schemas.IdentityCertificate_CertificateArn, v.CertificateArn)
+		case schemas.IdentityCertificate_CertificateExpiryTime:
+			v.CertificateExpiryTime = new(time.Time)
+			return d.ReadTime(schemas.IdentityCertificate_CertificateExpiryTime, v.CertificateExpiryTime)
+		case schemas.IdentityCertificate_FromAddress:
+			v.FromAddress = new(string)
+			return d.ReadString(schemas.IdentityCertificate_FromAddress, v.FromAddress)
+		case schemas.IdentityCertificate_Status:
+			var ev string
+			if err := d.ReadString(schemas.IdentityCertificate_Status, &ev); err != nil {
+				return err
+			}
+			v.Status = IdentityCertificateStatus(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // Information about an email identity.
@@ -1318,6 +3677,53 @@ type IdentityInfo struct {
 	noSmithyDocumentSerde
 }
 
+func (v *IdentityInfo) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.IdentityInfo)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *IdentityInfo) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.IdentityName != nil {
+		s.WriteString(schemas.IdentityInfo_IdentityName, *v.IdentityName)
+	}
+	if v.IdentityType != "" {
+		s.WriteString(schemas.IdentityInfo_IdentityType, string(v.IdentityType))
+	}
+	if v.SendingEnabled != false {
+		s.WriteBool(schemas.IdentityInfo_SendingEnabled, v.SendingEnabled)
+	}
+	if v.VerificationStatus != "" {
+		s.WriteString(schemas.IdentityInfo_VerificationStatus, string(v.VerificationStatus))
+	}
+}
+func (v *IdentityInfo) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.IdentityInfo, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.IdentityInfo_IdentityName:
+			v.IdentityName = new(string)
+			return d.ReadString(schemas.IdentityInfo_IdentityName, v.IdentityName)
+		case schemas.IdentityInfo_IdentityType:
+			var ev string
+			if err := d.ReadString(schemas.IdentityInfo_IdentityType, &ev); err != nil {
+				return err
+			}
+			v.IdentityType = IdentityType(ev)
+			return nil
+		case schemas.IdentityInfo_SendingEnabled:
+			return d.ReadBool(schemas.IdentityInfo_SendingEnabled, &v.SendingEnabled)
+		case schemas.IdentityInfo_VerificationStatus:
+			var ev string
+			if err := d.ReadString(schemas.IdentityInfo_VerificationStatus, &ev); err != nil {
+				return err
+			}
+			v.VerificationStatus = VerificationStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object that contains details about the data source of the import job.
 type ImportDataSource struct {
 
@@ -1334,6 +3740,38 @@ type ImportDataSource struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ImportDataSource) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ImportDataSource)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ImportDataSource) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DataFormat != "" {
+		s.WriteString(schemas.ImportDataSource_DataFormat, string(v.DataFormat))
+	}
+	if v.S3Url != nil {
+		s.WriteString(schemas.ImportDataSource_S3Url, *v.S3Url)
+	}
+}
+func (v *ImportDataSource) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ImportDataSource, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ImportDataSource_DataFormat:
+			var ev string
+			if err := d.ReadString(schemas.ImportDataSource_DataFormat, &ev); err != nil {
+				return err
+			}
+			v.DataFormat = DataFormat(ev)
+			return nil
+		case schemas.ImportDataSource_S3Url:
+			v.S3Url = new(string)
+			return d.ReadString(schemas.ImportDataSource_S3Url, v.S3Url)
+		}
+		return nil
+	})
+}
+
 // An object that contains details about the resource destination the import job
 // is going to target.
 type ImportDestination struct {
@@ -1345,6 +3783,38 @@ type ImportDestination struct {
 	SuppressionListDestination *SuppressionListDestination
 
 	noSmithyDocumentSerde
+}
+
+func (v *ImportDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ImportDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ImportDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ContactListDestination != nil {
+		s.WriteStruct(schemas.ImportDestination_ContactListDestination)
+		v.ContactListDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.SuppressionListDestination != nil {
+		s.WriteStruct(schemas.ImportDestination_SuppressionListDestination)
+		v.SuppressionListDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *ImportDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ImportDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ImportDestination_ContactListDestination:
+			v.ContactListDestination = &ContactListDestination{}
+			return v.ContactListDestination.Deserialize(d)
+		case schemas.ImportDestination_SuppressionListDestination:
+			v.SuppressionListDestination = &SuppressionListDestination{}
+			return v.SuppressionListDestination.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // A summary of the import job.
@@ -1370,15 +3840,75 @@ type ImportJobSummary struct {
 	//
 	//   - PROCESSING – Job is processing.
 	//
-	//   - ERROR – An error occurred during processing.
-	//
 	//   - COMPLETED – Job has completed processing successfully.
+	//
+	//   - FAILED – An error occurred during processing.
+	//
+	//   - CANCELLED – Job has been canceled.
 	JobStatus JobStatus
 
 	// The current number of records processed.
 	ProcessedRecordsCount *int32
 
 	noSmithyDocumentSerde
+}
+
+func (v *ImportJobSummary) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ImportJobSummary)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ImportJobSummary) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreatedTimestamp != nil {
+		s.WriteTime(schemas.ImportJobSummary_CreatedTimestamp, *v.CreatedTimestamp)
+	}
+	if v.FailedRecordsCount != nil {
+		s.WriteInt32(schemas.ImportJobSummary_FailedRecordsCount, *v.FailedRecordsCount)
+	}
+	if v.ImportDestination != nil {
+		s.WriteStruct(schemas.ImportJobSummary_ImportDestination)
+		v.ImportDestination.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.JobId != nil {
+		s.WriteString(schemas.ImportJobSummary_JobId, *v.JobId)
+	}
+	if v.JobStatus != "" {
+		s.WriteString(schemas.ImportJobSummary_JobStatus, string(v.JobStatus))
+	}
+	if v.ProcessedRecordsCount != nil {
+		s.WriteInt32(schemas.ImportJobSummary_ProcessedRecordsCount, *v.ProcessedRecordsCount)
+	}
+}
+func (v *ImportJobSummary) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ImportJobSummary, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ImportJobSummary_CreatedTimestamp:
+			v.CreatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.ImportJobSummary_CreatedTimestamp, v.CreatedTimestamp)
+		case schemas.ImportJobSummary_FailedRecordsCount:
+			v.FailedRecordsCount = new(int32)
+			return d.ReadInt32(schemas.ImportJobSummary_FailedRecordsCount, v.FailedRecordsCount)
+		case schemas.ImportJobSummary_ImportDestination:
+			v.ImportDestination = &ImportDestination{}
+			return v.ImportDestination.Deserialize(d)
+		case schemas.ImportJobSummary_JobId:
+			v.JobId = new(string)
+			return d.ReadString(schemas.ImportJobSummary_JobId, v.JobId)
+		case schemas.ImportJobSummary_JobStatus:
+			var ev string
+			if err := d.ReadString(schemas.ImportJobSummary_JobStatus, &ev); err != nil {
+				return err
+			}
+			v.JobStatus = JobStatus(ev)
+			return nil
+		case schemas.ImportJobSummary_ProcessedRecordsCount:
+			v.ProcessedRecordsCount = new(int32)
+			return d.ReadInt32(schemas.ImportJobSummary_ProcessedRecordsCount, v.ProcessedRecordsCount)
+		}
+		return nil
+	})
 }
 
 // An object that contains information about the inbox placement data settings for
@@ -1395,6 +3925,32 @@ type InboxPlacementTrackingOption struct {
 	TrackedIsps []string
 
 	noSmithyDocumentSerde
+}
+
+func (v *InboxPlacementTrackingOption) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.InboxPlacementTrackingOption)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *InboxPlacementTrackingOption) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Global != false {
+		s.WriteBool(schemas.InboxPlacementTrackingOption_Global, v.Global)
+	}
+	if v.TrackedIsps != nil {
+		serializeIspNameList(s, schemas.InboxPlacementTrackingOption_TrackedIsps, v.TrackedIsps)
+	}
+}
+func (v *InboxPlacementTrackingOption) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.InboxPlacementTrackingOption, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.InboxPlacementTrackingOption_Global:
+			return d.ReadBool(schemas.InboxPlacementTrackingOption_Global, &v.Global)
+		case schemas.InboxPlacementTrackingOption_TrackedIsps:
+			return deserializeIspNameList(d, schemas.InboxPlacementTrackingOption_TrackedIsps, &v.TrackedIsps)
+		}
+		return nil
+	})
 }
 
 // An object containing details about a specific event.
@@ -1435,6 +3991,46 @@ type InsightsEvent struct {
 	noSmithyDocumentSerde
 }
 
+func (v *InsightsEvent) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.InsightsEvent)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *InsightsEvent) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Details != nil {
+		s.WriteStruct(schemas.InsightsEvent_Details)
+		v.Details.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Timestamp != nil {
+		s.WriteTime(schemas.InsightsEvent_Timestamp, *v.Timestamp)
+	}
+	if v.Type != "" {
+		s.WriteString(schemas.InsightsEvent_Type, string(v.Type))
+	}
+}
+func (v *InsightsEvent) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.InsightsEvent, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.InsightsEvent_Details:
+			v.Details = &EventDetails{}
+			return v.Details.Deserialize(d)
+		case schemas.InsightsEvent_Timestamp:
+			v.Timestamp = new(time.Time)
+			return d.ReadTime(schemas.InsightsEvent_Timestamp, v.Timestamp)
+		case schemas.InsightsEvent_Type:
+			var ev string
+			if err := d.ReadString(schemas.InsightsEvent_Type, &ev); err != nil {
+				return err
+			}
+			v.Type = EventType(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object that describes how email sent during the predictive inbox placement
 // test was handled by a certain email provider.
 type IspPlacement struct {
@@ -1446,6 +4042,36 @@ type IspPlacement struct {
 	PlacementStatistics *PlacementStatistics
 
 	noSmithyDocumentSerde
+}
+
+func (v *IspPlacement) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.IspPlacement)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *IspPlacement) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.IspName != nil {
+		s.WriteString(schemas.IspPlacement_IspName, *v.IspName)
+	}
+	if v.PlacementStatistics != nil {
+		s.WriteStruct(schemas.IspPlacement_PlacementStatistics)
+		v.PlacementStatistics.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *IspPlacement) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.IspPlacement, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.IspPlacement_IspName:
+			v.IspName = new(string)
+			return d.ReadString(schemas.IspPlacement_IspName, v.IspName)
+		case schemas.IspPlacement_PlacementStatistics:
+			v.PlacementStatistics = &PlacementStatistics{}
+			return v.PlacementStatistics.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An object that defines an Amazon Kinesis Data Firehose destination for email
@@ -1468,6 +4094,34 @@ type KinesisFirehoseDestination struct {
 	noSmithyDocumentSerde
 }
 
+func (v *KinesisFirehoseDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.KinesisFirehoseDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *KinesisFirehoseDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DeliveryStreamArn != nil {
+		s.WriteString(schemas.KinesisFirehoseDestination_DeliveryStreamArn, *v.DeliveryStreamArn)
+	}
+	if v.IamRoleArn != nil {
+		s.WriteString(schemas.KinesisFirehoseDestination_IamRoleArn, *v.IamRoleArn)
+	}
+}
+func (v *KinesisFirehoseDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.KinesisFirehoseDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.KinesisFirehoseDestination_DeliveryStreamArn:
+			v.DeliveryStreamArn = new(string)
+			return d.ReadString(schemas.KinesisFirehoseDestination_DeliveryStreamArn, v.DeliveryStreamArn)
+		case schemas.KinesisFirehoseDestination_IamRoleArn:
+			v.IamRoleArn = new(string)
+			return d.ReadString(schemas.KinesisFirehoseDestination_IamRoleArn, v.IamRoleArn)
+		}
+		return nil
+	})
+}
+
 // A filter that can be applied to a list of contacts.
 type ListContactsFilter struct {
 
@@ -1478,6 +4132,40 @@ type ListContactsFilter struct {
 	TopicFilter *TopicFilter
 
 	noSmithyDocumentSerde
+}
+
+func (v *ListContactsFilter) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListContactsFilter)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListContactsFilter) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FilteredStatus != "" {
+		s.WriteString(schemas.ListContactsFilter_FilteredStatus, string(v.FilteredStatus))
+	}
+	if v.TopicFilter != nil {
+		s.WriteStruct(schemas.ListContactsFilter_TopicFilter)
+		v.TopicFilter.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *ListContactsFilter) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ListContactsFilter, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ListContactsFilter_FilteredStatus:
+			var ev string
+			if err := d.ReadString(schemas.ListContactsFilter_FilteredStatus, &ev); err != nil {
+				return err
+			}
+			v.FilteredStatus = SubscriptionStatus(ev)
+			return nil
+		case schemas.ListContactsFilter_TopicFilter:
+			v.TopicFilter = &TopicFilter{}
+			return v.TopicFilter.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An object used to specify a list or topic to which an email belongs, which will
@@ -1495,17 +4183,89 @@ type ListManagementOptions struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListManagementOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListManagementOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListManagementOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ContactListName != nil {
+		s.WriteString(schemas.ListManagementOptions_ContactListName, *v.ContactListName)
+	}
+	if v.TopicName != nil {
+		s.WriteString(schemas.ListManagementOptions_TopicName, *v.TopicName)
+	}
+}
+func (v *ListManagementOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ListManagementOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ListManagementOptions_ContactListName:
+			v.ContactListName = new(string)
+			return d.ReadString(schemas.ListManagementOptions_ContactListName, v.ContactListName)
+		case schemas.ListManagementOptions_TopicName:
+			v.TopicName = new(string)
+			return d.ReadString(schemas.ListManagementOptions_TopicName, v.TopicName)
+		}
+		return nil
+	})
+}
+
+// Contains detailed validation information about an email address.
+type MailboxValidation struct {
+
+	// Specific validation checks performed on the email address.
+	Evaluations *EmailAddressInsightsMailboxEvaluations
+
+	// Overall validity assessment with a conﬁdence verdict.
+	IsValid *EmailAddressInsightsVerdict
+
+	noSmithyDocumentSerde
+}
+
+func (v *MailboxValidation) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MailboxValidation)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MailboxValidation) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Evaluations != nil {
+		s.WriteStruct(schemas.MailboxValidation_Evaluations)
+		v.Evaluations.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.IsValid != nil {
+		s.WriteStruct(schemas.MailboxValidation_IsValid)
+		v.IsValid.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *MailboxValidation) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MailboxValidation, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MailboxValidation_Evaluations:
+			v.Evaluations = &EmailAddressInsightsMailboxEvaluations{}
+			return v.Evaluations.Deserialize(d)
+		case schemas.MailboxValidation_IsValid:
+			v.IsValid = &EmailAddressInsightsVerdict{}
+			return v.IsValid.Deserialize(d)
+		}
+		return nil
+	})
+}
+
 // A list of attributes that are associated with a MAIL FROM domain.
 type MailFromAttributes struct {
 
 	// The action to take if the required MX record can't be found when you send an
 	// email. When you set this value to USE_DEFAULT_VALUE , the mail is sent using
 	// amazonses.com as the MAIL FROM domain. When you set this value to REJECT_MESSAGE
-	// , the Amazon SES API v2 returns a MailFromDomainNotVerified error, and doesn't
-	// attempt to deliver the email.
+	// , the Amazon SES API v2 returns a MailFromDomainNotVerifiedException error, and
+	// doesn't attempt to deliver the email.
 	//
 	// These behaviors are taken when the custom MAIL FROM domain configuration is in
-	// the Pending , Failed , and TemporaryFailure states.
+	// the PENDING , FAILED , and TEMPORARY_FAILURE states.
 	//
 	// This member is required.
 	BehaviorOnMxFailure BehaviorOnMxFailure
@@ -1534,6 +4294,48 @@ type MailFromAttributes struct {
 	noSmithyDocumentSerde
 }
 
+func (v *MailFromAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MailFromAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MailFromAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.BehaviorOnMxFailure != "" {
+		s.WriteString(schemas.MailFromAttributes_BehaviorOnMxFailure, string(v.BehaviorOnMxFailure))
+	}
+	if v.MailFromDomain != nil {
+		s.WriteString(schemas.MailFromAttributes_MailFromDomain, *v.MailFromDomain)
+	}
+	if v.MailFromDomainStatus != "" {
+		s.WriteString(schemas.MailFromAttributes_MailFromDomainStatus, string(v.MailFromDomainStatus))
+	}
+}
+func (v *MailFromAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MailFromAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MailFromAttributes_BehaviorOnMxFailure:
+			var ev string
+			if err := d.ReadString(schemas.MailFromAttributes_BehaviorOnMxFailure, &ev); err != nil {
+				return err
+			}
+			v.BehaviorOnMxFailure = BehaviorOnMxFailure(ev)
+			return nil
+		case schemas.MailFromAttributes_MailFromDomain:
+			v.MailFromDomain = new(string)
+			return d.ReadString(schemas.MailFromAttributes_MailFromDomain, v.MailFromDomain)
+		case schemas.MailFromAttributes_MailFromDomainStatus:
+			var ev string
+			if err := d.ReadString(schemas.MailFromAttributes_MailFromDomainStatus, &ev); err != nil {
+				return err
+			}
+			v.MailFromDomainStatus = MailFromDomainStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // Represents the email message that you're sending. The Message object consists
 // of a subject line and a message body.
 type Message struct {
@@ -1553,10 +4355,56 @@ type Message struct {
 	// This member is required.
 	Subject *Content
 
+	//  The List of attachments to include in your email. All recipients will receive
+	// the same attachments.
+	Attachments []Attachment
+
 	// The list of message headers that will be added to the email message.
 	Headers []MessageHeader
 
 	noSmithyDocumentSerde
+}
+
+func (v *Message) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Message)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Message) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Attachments != nil {
+		serializeAttachmentList(s, schemas.Message_Attachments, v.Attachments)
+	}
+	if v.Body != nil {
+		s.WriteStruct(schemas.Message_Body)
+		v.Body.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Headers != nil {
+		serializeMessageHeaderList(s, schemas.Message_Headers, v.Headers)
+	}
+	if v.Subject != nil {
+		s.WriteStruct(schemas.Message_Subject)
+		v.Subject.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *Message) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Message, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Message_Attachments:
+			return deserializeAttachmentList(d, schemas.Message_Attachments, &v.Attachments)
+		case schemas.Message_Body:
+			v.Body = &Body{}
+			return v.Body.Deserialize(d)
+		case schemas.Message_Headers:
+			return deserializeMessageHeaderList(d, schemas.Message_Headers, &v.Headers)
+		case schemas.Message_Subject:
+			v.Subject = &Content{}
+			return v.Subject.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // Contains the name and value of a message header that you add to an email.
@@ -1577,12 +4425,43 @@ type MessageHeader struct {
 	//
 	//   - Can contain any printable ASCII character.
 	//
-	//   - Can contain no more than 870 characters.
+	//   - Can contain no more than 995 characters.
+	//
+	//   - The combined length of the header name and value must not exceed 996
+	//   characters.
 	//
 	// This member is required.
 	Value *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *MessageHeader) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MessageHeader)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MessageHeader) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Name != nil {
+		s.WriteString(schemas.MessageHeader_Name, *v.Name)
+	}
+	if v.Value != nil {
+		s.WriteString(schemas.MessageHeader_Value, *v.Value)
+	}
+}
+func (v *MessageHeader) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MessageHeader, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MessageHeader_Name:
+			v.Name = new(string)
+			return d.ReadString(schemas.MessageHeader_Name, v.Name)
+		case schemas.MessageHeader_Value:
+			v.Value = new(string)
+			return d.ReadString(schemas.MessageHeader_Value, v.Value)
+		}
+		return nil
+	})
 }
 
 // An object that contains filters applied when performing the Message Insights
@@ -1608,9 +4487,61 @@ type MessageInsightsDataSource struct {
 	Include *MessageInsightsFilters
 
 	// The maximum number of results.
+	//
+	// If you don't specify MaxResults , the export returns a maximum of 1,000 results.
 	MaxResults *int32
 
 	noSmithyDocumentSerde
+}
+
+func (v *MessageInsightsDataSource) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MessageInsightsDataSource)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MessageInsightsDataSource) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.EndDate != nil {
+		s.WriteTime(schemas.MessageInsightsDataSource_EndDate, *v.EndDate)
+	}
+	if v.Exclude != nil {
+		s.WriteStruct(schemas.MessageInsightsDataSource_Exclude)
+		v.Exclude.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Include != nil {
+		s.WriteStruct(schemas.MessageInsightsDataSource_Include)
+		v.Include.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.MaxResults != nil {
+		s.WriteInt32(schemas.MessageInsightsDataSource_MaxResults, *v.MaxResults)
+	}
+	if v.StartDate != nil {
+		s.WriteTime(schemas.MessageInsightsDataSource_StartDate, *v.StartDate)
+	}
+}
+func (v *MessageInsightsDataSource) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MessageInsightsDataSource, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MessageInsightsDataSource_EndDate:
+			v.EndDate = new(time.Time)
+			return d.ReadTime(schemas.MessageInsightsDataSource_EndDate, v.EndDate)
+		case schemas.MessageInsightsDataSource_Exclude:
+			v.Exclude = &MessageInsightsFilters{}
+			return v.Exclude.Deserialize(d)
+		case schemas.MessageInsightsDataSource_Include:
+			v.Include = &MessageInsightsFilters{}
+			return v.Include.Deserialize(d)
+		case schemas.MessageInsightsDataSource_MaxResults:
+			v.MaxResults = new(int32)
+			return d.ReadInt32(schemas.MessageInsightsDataSource_MaxResults, v.MaxResults)
+		case schemas.MessageInsightsDataSource_StartDate:
+			v.StartDate = new(time.Time)
+			return d.ReadTime(schemas.MessageInsightsDataSource_StartDate, v.StartDate)
+		}
+		return nil
+	})
 }
 
 // An object containing Message Insights filters.
@@ -1652,7 +4583,95 @@ type MessageInsightsFilters struct {
 	// The subject line of the message.
 	Subject []string
 
+	// The name of the tenant used when sending the message.
+	TenantName []string
+
 	noSmithyDocumentSerde
+}
+
+func (v *MessageInsightsFilters) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MessageInsightsFilters)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MessageInsightsFilters) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Destination != nil {
+		serializeEmailAddressFilterList(s, schemas.MessageInsightsFilters_Destination, v.Destination)
+	}
+	if v.FromEmailAddress != nil {
+		serializeEmailAddressFilterList(s, schemas.MessageInsightsFilters_FromEmailAddress, v.FromEmailAddress)
+	}
+	if v.Isp != nil {
+		serializeIspFilterList(s, schemas.MessageInsightsFilters_Isp, v.Isp)
+	}
+	if v.LastDeliveryEvent != nil {
+		serializeLastDeliveryEventList(s, schemas.MessageInsightsFilters_LastDeliveryEvent, v.LastDeliveryEvent)
+	}
+	if v.LastEngagementEvent != nil {
+		serializeLastEngagementEventList(s, schemas.MessageInsightsFilters_LastEngagementEvent, v.LastEngagementEvent)
+	}
+	if v.Subject != nil {
+		serializeEmailSubjectFilterList(s, schemas.MessageInsightsFilters_Subject, v.Subject)
+	}
+	if v.TenantName != nil {
+		serializeTenantNameFilterList(s, schemas.MessageInsightsFilters_TenantName, v.TenantName)
+	}
+}
+func (v *MessageInsightsFilters) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MessageInsightsFilters, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MessageInsightsFilters_Destination:
+			return deserializeEmailAddressFilterList(d, schemas.MessageInsightsFilters_Destination, &v.Destination)
+		case schemas.MessageInsightsFilters_FromEmailAddress:
+			return deserializeEmailAddressFilterList(d, schemas.MessageInsightsFilters_FromEmailAddress, &v.FromEmailAddress)
+		case schemas.MessageInsightsFilters_Isp:
+			return deserializeIspFilterList(d, schemas.MessageInsightsFilters_Isp, &v.Isp)
+		case schemas.MessageInsightsFilters_LastDeliveryEvent:
+			return deserializeLastDeliveryEventList(d, schemas.MessageInsightsFilters_LastDeliveryEvent, &v.LastDeliveryEvent)
+		case schemas.MessageInsightsFilters_LastEngagementEvent:
+			return deserializeLastEngagementEventList(d, schemas.MessageInsightsFilters_LastEngagementEvent, &v.LastEngagementEvent)
+		case schemas.MessageInsightsFilters_Subject:
+			return deserializeEmailSubjectFilterList(d, schemas.MessageInsightsFilters_Subject, &v.Subject)
+		case schemas.MessageInsightsFilters_TenantName:
+			return deserializeTenantNameFilterList(d, schemas.MessageInsightsFilters_TenantName, &v.TenantName)
+		}
+		return nil
+	})
+}
+
+// An object that defines the message-level security options that apply to
+// messages that you send using the configuration set. Currently, these options
+// determine whether Amazon SES API v2 adds an S/MIME signature to your messages
+// and, if so, the format of that signature.
+type MessageSecurityOptions struct {
+
+	// The signing scheme that Amazon SES API v2 applies to messages sent with the
+	// configuration set.
+	SigningScheme SigningScheme
+
+	noSmithyDocumentSerde
+}
+
+func (v *MessageSecurityOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MessageSecurityOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MessageSecurityOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SigningScheme != nil {
+		serializeSigningScheme(s, schemas.MessageSecurityOptions_SigningScheme, v.SigningScheme)
+	}
+}
+func (v *MessageSecurityOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MessageSecurityOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MessageSecurityOptions_SigningScheme:
+			return deserializeSigningScheme(d, schemas.MessageSecurityOptions_SigningScheme, &v.SigningScheme)
+		}
+		return nil
+	})
 }
 
 // Contains the name and value of a tag that you apply to an email. You can use
@@ -1684,6 +4703,34 @@ type MessageTag struct {
 	noSmithyDocumentSerde
 }
 
+func (v *MessageTag) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MessageTag)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MessageTag) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Name != nil {
+		s.WriteString(schemas.MessageTag_Name, *v.Name)
+	}
+	if v.Value != nil {
+		s.WriteString(schemas.MessageTag_Value, *v.Value)
+	}
+}
+func (v *MessageTag) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MessageTag, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MessageTag_Name:
+			v.Name = new(string)
+			return d.ReadString(schemas.MessageTag_Name, v.Name)
+		case schemas.MessageTag_Value:
+			v.Value = new(string)
+			return d.ReadString(schemas.MessageTag_Value, v.Value)
+		}
+		return nil
+	})
+}
+
 // An error corresponding to the unsuccessful processing of a single metric data
 // query.
 type MetricDataError struct {
@@ -1705,6 +4752,44 @@ type MetricDataError struct {
 	noSmithyDocumentSerde
 }
 
+func (v *MetricDataError) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MetricDataError)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MetricDataError) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Code != "" {
+		s.WriteString(schemas.MetricDataError_Code, string(v.Code))
+	}
+	if v.Id != nil {
+		s.WriteString(schemas.MetricDataError_Id, *v.Id)
+	}
+	if v.Message != nil {
+		s.WriteString(schemas.MetricDataError_Message, *v.Message)
+	}
+}
+func (v *MetricDataError) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MetricDataError, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MetricDataError_Code:
+			var ev string
+			if err := d.ReadString(schemas.MetricDataError_Code, &ev); err != nil {
+				return err
+			}
+			v.Code = QueryErrorCode(ev)
+			return nil
+		case schemas.MetricDataError_Id:
+			v.Id = new(string)
+			return d.ReadString(schemas.MetricDataError_Id, v.Id)
+		case schemas.MetricDataError_Message:
+			v.Message = new(string)
+			return d.ReadString(schemas.MetricDataError_Message, v.Message)
+		}
+		return nil
+	})
+}
+
 // The result of a single metric data query.
 type MetricDataResult struct {
 
@@ -1718,6 +4803,38 @@ type MetricDataResult struct {
 	Values []int64
 
 	noSmithyDocumentSerde
+}
+
+func (v *MetricDataResult) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MetricDataResult)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MetricDataResult) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Id != nil {
+		s.WriteString(schemas.MetricDataResult_Id, *v.Id)
+	}
+	if v.Timestamps != nil {
+		serializeTimestampList(s, schemas.MetricDataResult_Timestamps, v.Timestamps)
+	}
+	if v.Values != nil {
+		serializeMetricValueList(s, schemas.MetricDataResult_Values, v.Values)
+	}
+}
+func (v *MetricDataResult) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MetricDataResult, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MetricDataResult_Id:
+			v.Id = new(string)
+			return d.ReadString(schemas.MetricDataResult_Id, v.Id)
+		case schemas.MetricDataResult_Timestamps:
+			return deserializeTimestampList(d, schemas.MetricDataResult_Timestamps, &v.Timestamps)
+		case schemas.MetricDataResult_Values:
+			return deserializeMetricValueList(d, schemas.MetricDataResult_Values, &v.Values)
+		}
+		return nil
+	})
 }
 
 // An object that contains details about the data source for the metrics export.
@@ -1753,6 +4870,143 @@ type MetricsDataSource struct {
 	noSmithyDocumentSerde
 }
 
+func (v *MetricsDataSource) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MetricsDataSource)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MetricsDataSource) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Dimensions != nil {
+		serializeExportDimensions(s, schemas.MetricsDataSource_Dimensions, v.Dimensions)
+	}
+	if v.EndDate != nil {
+		s.WriteTime(schemas.MetricsDataSource_EndDate, *v.EndDate)
+	}
+	if v.Metrics != nil {
+		serializeExportMetrics(s, schemas.MetricsDataSource_Metrics, v.Metrics)
+	}
+	if v.Namespace != "" {
+		s.WriteString(schemas.MetricsDataSource_Namespace, string(v.Namespace))
+	}
+	if v.StartDate != nil {
+		s.WriteTime(schemas.MetricsDataSource_StartDate, *v.StartDate)
+	}
+}
+func (v *MetricsDataSource) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MetricsDataSource, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MetricsDataSource_Dimensions:
+			return deserializeExportDimensions(d, schemas.MetricsDataSource_Dimensions, &v.Dimensions)
+		case schemas.MetricsDataSource_EndDate:
+			v.EndDate = new(time.Time)
+			return d.ReadTime(schemas.MetricsDataSource_EndDate, v.EndDate)
+		case schemas.MetricsDataSource_Metrics:
+			return deserializeExportMetrics(d, schemas.MetricsDataSource_Metrics, &v.Metrics)
+		case schemas.MetricsDataSource_Namespace:
+			var ev string
+			if err := d.ReadString(schemas.MetricsDataSource_Namespace, &ev); err != nil {
+				return err
+			}
+			v.Namespace = MetricNamespace(ev)
+			return nil
+		case schemas.MetricsDataSource_StartDate:
+			v.StartDate = new(time.Time)
+			return d.ReadTime(schemas.MetricsDataSource_StartDate, v.StartDate)
+		}
+		return nil
+	})
+}
+
+// An object that contains multi-region endpoint (global-endpoint) properties.
+type MultiRegionEndpoint struct {
+
+	// The time stamp of when the multi-region endpoint (global-endpoint) was created.
+	CreatedTimestamp *time.Time
+
+	// The ID of the multi-region endpoint (global-endpoint).
+	EndpointId *string
+
+	// The name of the multi-region endpoint (global-endpoint).
+	EndpointName *string
+
+	// The time stamp of when the multi-region endpoint (global-endpoint) was last
+	// updated.
+	LastUpdatedTimestamp *time.Time
+
+	// Primary and secondary regions between which multi-region endpoint splits
+	// sending traffic.
+	Regions []string
+
+	// The status of the multi-region endpoint (global-endpoint).
+	//
+	//   - CREATING – The resource is being provisioned.
+	//
+	//   - READY – The resource is ready to use.
+	//
+	//   - FAILED – The resource failed to be provisioned.
+	//
+	//   - DELETING – The resource is being deleted as requested.
+	Status Status
+
+	noSmithyDocumentSerde
+}
+
+func (v *MultiRegionEndpoint) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.MultiRegionEndpoint)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *MultiRegionEndpoint) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreatedTimestamp != nil {
+		s.WriteTime(schemas.MultiRegionEndpoint_CreatedTimestamp, *v.CreatedTimestamp)
+	}
+	if v.EndpointId != nil {
+		s.WriteString(schemas.MultiRegionEndpoint_EndpointId, *v.EndpointId)
+	}
+	if v.EndpointName != nil {
+		s.WriteString(schemas.MultiRegionEndpoint_EndpointName, *v.EndpointName)
+	}
+	if v.LastUpdatedTimestamp != nil {
+		s.WriteTime(schemas.MultiRegionEndpoint_LastUpdatedTimestamp, *v.LastUpdatedTimestamp)
+	}
+	if v.Regions != nil {
+		serializeRegions(s, schemas.MultiRegionEndpoint_Regions, v.Regions)
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.MultiRegionEndpoint_Status, string(v.Status))
+	}
+}
+func (v *MultiRegionEndpoint) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.MultiRegionEndpoint, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.MultiRegionEndpoint_CreatedTimestamp:
+			v.CreatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.MultiRegionEndpoint_CreatedTimestamp, v.CreatedTimestamp)
+		case schemas.MultiRegionEndpoint_EndpointId:
+			v.EndpointId = new(string)
+			return d.ReadString(schemas.MultiRegionEndpoint_EndpointId, v.EndpointId)
+		case schemas.MultiRegionEndpoint_EndpointName:
+			v.EndpointName = new(string)
+			return d.ReadString(schemas.MultiRegionEndpoint_EndpointName, v.EndpointName)
+		case schemas.MultiRegionEndpoint_LastUpdatedTimestamp:
+			v.LastUpdatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.MultiRegionEndpoint_LastUpdatedTimestamp, v.LastUpdatedTimestamp)
+		case schemas.MultiRegionEndpoint_Regions:
+			return deserializeRegions(d, schemas.MultiRegionEndpoint_Regions, &v.Regions)
+		case schemas.MultiRegionEndpoint_Status:
+			var ev string
+			if err := d.ReadString(schemas.MultiRegionEndpoint_Status, &ev); err != nil {
+				return err
+			}
+			v.Status = Status(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object that contains information about email that was sent from the selected
 // domain.
 type OverallVolume struct {
@@ -1772,6 +5026,41 @@ type OverallVolume struct {
 	noSmithyDocumentSerde
 }
 
+func (v *OverallVolume) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.OverallVolume)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *OverallVolume) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DomainIspPlacements != nil {
+		serializeDomainIspPlacements(s, schemas.OverallVolume_DomainIspPlacements, v.DomainIspPlacements)
+	}
+	if v.ReadRatePercent != nil {
+		s.WriteFloat64(schemas.OverallVolume_ReadRatePercent, *v.ReadRatePercent)
+	}
+	if v.VolumeStatistics != nil {
+		s.WriteStruct(schemas.OverallVolume_VolumeStatistics)
+		v.VolumeStatistics.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *OverallVolume) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.OverallVolume, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.OverallVolume_DomainIspPlacements:
+			return deserializeDomainIspPlacements(d, schemas.OverallVolume_DomainIspPlacements, &v.DomainIspPlacements)
+		case schemas.OverallVolume_ReadRatePercent:
+			v.ReadRatePercent = new(float64)
+			return d.ReadFloat64(schemas.OverallVolume_ReadRatePercent, v.ReadRatePercent)
+		case schemas.OverallVolume_VolumeStatistics:
+			v.VolumeStatistics = &VolumeStatistics{}
+			return v.VolumeStatistics.Deserialize(d)
+		}
+		return nil
+	})
+}
+
 // An object that defines an Amazon Pinpoint project destination for email events.
 // You can send email event data to a Amazon Pinpoint project to view metrics using
 // the Transactional Messaging dashboards that are built in to Amazon Pinpoint. For
@@ -1785,6 +5074,28 @@ type PinpointDestination struct {
 	ApplicationArn *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *PinpointDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PinpointDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PinpointDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ApplicationArn != nil {
+		s.WriteString(schemas.PinpointDestination_ApplicationArn, *v.ApplicationArn)
+	}
+}
+func (v *PinpointDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PinpointDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PinpointDestination_ApplicationArn:
+			v.ApplicationArn = new(string)
+			return d.ReadString(schemas.PinpointDestination_ApplicationArn, v.ApplicationArn)
+		}
+		return nil
+	})
 }
 
 // An object that contains inbox placement data for an email provider.
@@ -1811,6 +5122,103 @@ type PlacementStatistics struct {
 	SpfPercentage *float64
 
 	noSmithyDocumentSerde
+}
+
+func (v *PlacementStatistics) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PlacementStatistics)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PlacementStatistics) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DkimPercentage != nil {
+		s.WriteFloat64(schemas.PlacementStatistics_DkimPercentage, *v.DkimPercentage)
+	}
+	if v.InboxPercentage != nil {
+		s.WriteFloat64(schemas.PlacementStatistics_InboxPercentage, *v.InboxPercentage)
+	}
+	if v.MissingPercentage != nil {
+		s.WriteFloat64(schemas.PlacementStatistics_MissingPercentage, *v.MissingPercentage)
+	}
+	if v.SpamPercentage != nil {
+		s.WriteFloat64(schemas.PlacementStatistics_SpamPercentage, *v.SpamPercentage)
+	}
+	if v.SpfPercentage != nil {
+		s.WriteFloat64(schemas.PlacementStatistics_SpfPercentage, *v.SpfPercentage)
+	}
+}
+func (v *PlacementStatistics) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PlacementStatistics, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PlacementStatistics_DkimPercentage:
+			v.DkimPercentage = new(float64)
+			return d.ReadFloat64(schemas.PlacementStatistics_DkimPercentage, v.DkimPercentage)
+		case schemas.PlacementStatistics_InboxPercentage:
+			v.InboxPercentage = new(float64)
+			return d.ReadFloat64(schemas.PlacementStatistics_InboxPercentage, v.InboxPercentage)
+		case schemas.PlacementStatistics_MissingPercentage:
+			v.MissingPercentage = new(float64)
+			return d.ReadFloat64(schemas.PlacementStatistics_MissingPercentage, v.MissingPercentage)
+		case schemas.PlacementStatistics_SpamPercentage:
+			v.SpamPercentage = new(float64)
+			return d.ReadFloat64(schemas.PlacementStatistics_SpamPercentage, v.SpamPercentage)
+		case schemas.PlacementStatistics_SpfPercentage:
+			v.SpfPercentage = new(float64)
+			return d.ReadFloat64(schemas.PlacementStatistics_SpfPercentage, v.SpfPercentage)
+		}
+		return nil
+	})
+}
+
+// The pricing attributes that apply to your Amazon SES account, including the
+// currently active pricing plan and any scheduled change.
+type PricingAttributes struct {
+
+	// The pricing plan that is currently active on your Amazon SES account.
+	CurrentPlan PricingPlan
+
+	// The pricing plan that will become active at the start of the next monthly
+	// cycle, if a scheduled change has been requested. This field is empty when no
+	// scheduled change is pending.
+	NextPlan PricingPlan
+
+	noSmithyDocumentSerde
+}
+
+func (v *PricingAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PricingAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PricingAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CurrentPlan != "" {
+		s.WriteString(schemas.PricingAttributes_CurrentPlan, string(v.CurrentPlan))
+	}
+	if v.NextPlan != "" {
+		s.WriteString(schemas.PricingAttributes_NextPlan, string(v.NextPlan))
+	}
+}
+func (v *PricingAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PricingAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PricingAttributes_CurrentPlan:
+			var ev string
+			if err := d.ReadString(schemas.PricingAttributes_CurrentPlan, &ev); err != nil {
+				return err
+			}
+			v.CurrentPlan = PricingPlan(ev)
+			return nil
+		case schemas.PricingAttributes_NextPlan:
+			var ev string
+			if err := d.ReadString(schemas.PricingAttributes_NextPlan, &ev); err != nil {
+				return err
+			}
+			v.NextPlan = PricingPlan(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // Represents the raw content of an email message.
@@ -1846,6 +5254,27 @@ type RawMessage struct {
 	noSmithyDocumentSerde
 }
 
+func (v *RawMessage) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.RawMessage)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *RawMessage) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Data != nil {
+		s.WriteBlob(schemas.RawMessage_Data, v.Data)
+	}
+}
+func (v *RawMessage) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.RawMessage, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.RawMessage_Data:
+			return d.ReadBlob(schemas.RawMessage_Data, &v.Data)
+		}
+		return nil
+	})
+}
+
 // A recommendation generated for your account.
 type Recommendation struct {
 
@@ -1869,20 +5298,115 @@ type Recommendation struct {
 	// The recommendation status, with values like OPEN or FIXED .
 	Status RecommendationStatus
 
-	// The recommendation type, with values like DKIM , SPF , DMARC or BIMI .
+	// The recommendation type, with values like DKIM , SPF , DMARC , BIMI , or
+	// COMPLAINT .
 	Type RecommendationType
 
 	noSmithyDocumentSerde
 }
 
-// The ReplaceEmailContent object to be used for a specific BulkEmailEntry . The
-// ReplacementTemplate can be specified within this object.
+func (v *Recommendation) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Recommendation)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Recommendation) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreatedTimestamp != nil {
+		s.WriteTime(schemas.Recommendation_CreatedTimestamp, *v.CreatedTimestamp)
+	}
+	if v.Description != nil {
+		s.WriteString(schemas.Recommendation_Description, *v.Description)
+	}
+	if v.Impact != "" {
+		s.WriteString(schemas.Recommendation_Impact, string(v.Impact))
+	}
+	if v.LastUpdatedTimestamp != nil {
+		s.WriteTime(schemas.Recommendation_LastUpdatedTimestamp, *v.LastUpdatedTimestamp)
+	}
+	if v.ResourceArn != nil {
+		s.WriteString(schemas.Recommendation_ResourceArn, *v.ResourceArn)
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.Recommendation_Status, string(v.Status))
+	}
+	if v.Type != "" {
+		s.WriteString(schemas.Recommendation_Type, string(v.Type))
+	}
+}
+func (v *Recommendation) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Recommendation, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Recommendation_CreatedTimestamp:
+			v.CreatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.Recommendation_CreatedTimestamp, v.CreatedTimestamp)
+		case schemas.Recommendation_Description:
+			v.Description = new(string)
+			return d.ReadString(schemas.Recommendation_Description, v.Description)
+		case schemas.Recommendation_Impact:
+			var ev string
+			if err := d.ReadString(schemas.Recommendation_Impact, &ev); err != nil {
+				return err
+			}
+			v.Impact = RecommendationImpact(ev)
+			return nil
+		case schemas.Recommendation_LastUpdatedTimestamp:
+			v.LastUpdatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.Recommendation_LastUpdatedTimestamp, v.LastUpdatedTimestamp)
+		case schemas.Recommendation_ResourceArn:
+			v.ResourceArn = new(string)
+			return d.ReadString(schemas.Recommendation_ResourceArn, v.ResourceArn)
+		case schemas.Recommendation_Status:
+			var ev string
+			if err := d.ReadString(schemas.Recommendation_Status, &ev); err != nil {
+				return err
+			}
+			v.Status = RecommendationStatus(ev)
+			return nil
+		case schemas.Recommendation_Type:
+			var ev string
+			if err := d.ReadString(schemas.Recommendation_Type, &ev); err != nil {
+				return err
+			}
+			v.Type = RecommendationType(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
+// The ReplacementEmailContent object to be used for a specific BulkEmailEntry .
+// The ReplacementTemplate can be specified within this object.
 type ReplacementEmailContent struct {
 
 	// The ReplacementTemplate associated with ReplacementEmailContent .
 	ReplacementTemplate *ReplacementTemplate
 
 	noSmithyDocumentSerde
+}
+
+func (v *ReplacementEmailContent) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ReplacementEmailContent)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ReplacementEmailContent) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ReplacementTemplate != nil {
+		s.WriteStruct(schemas.ReplacementEmailContent_ReplacementTemplate)
+		v.ReplacementTemplate.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *ReplacementEmailContent) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ReplacementEmailContent, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ReplacementEmailContent_ReplacementTemplate:
+			v.ReplacementTemplate = &ReplacementTemplate{}
+			return v.ReplacementTemplate.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An object which contains ReplacementTemplateData to be used for a specific
@@ -1895,6 +5419,146 @@ type ReplacementTemplate struct {
 	ReplacementTemplateData *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *ReplacementTemplate) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ReplacementTemplate)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ReplacementTemplate) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ReplacementTemplateData != nil {
+		s.WriteString(schemas.ReplacementTemplate_ReplacementTemplateData, *v.ReplacementTemplateData)
+	}
+}
+func (v *ReplacementTemplate) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ReplacementTemplate, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ReplacementTemplate_ReplacementTemplateData:
+			v.ReplacementTemplateData = new(string)
+			return d.ReadString(schemas.ReplacementTemplate_ReplacementTemplateData, v.ReplacementTemplateData)
+		}
+		return nil
+	})
+}
+
+// An object that contains information about a reputation entity, including its
+// reference, type, policy, status records, and reputation impact.
+type ReputationEntity struct {
+
+	// The Amazon Web Services Amazon SES-managed status record for this reputation
+	// entity, including the current status, cause description, and last updated
+	// timestamp.
+	AwsSesManagedStatus *StatusRecord
+
+	// The customer-managed status record for this reputation entity, including the
+	// current status, cause description, and last updated timestamp.
+	CustomerManagedStatus *StatusRecord
+
+	// The unique identifier for the reputation entity. For resource-type entities,
+	// this is the Amazon Resource Name (ARN) of the resource.
+	ReputationEntityReference *string
+
+	// The type of reputation entity. Currently, only RESOURCE type entities are
+	// supported.
+	ReputationEntityType ReputationEntityType
+
+	// The reputation impact level for this entity, representing the highest impact
+	// reputation finding currently active. Reputation findings can be retrieved using
+	// the ListRecommendations operation.
+	ReputationImpact RecommendationImpact
+
+	// The Amazon Resource Name (ARN) of the reputation management policy applied to
+	// this entity. This is an Amazon Web Services Amazon SES-managed policy.
+	ReputationManagementPolicy *string
+
+	// The aggregate sending status that determines whether the entity is allowed to
+	// send emails. This status is derived from both the customer-managed and Amazon
+	// Web Services Amazon SES-managed statuses. If either the customer-managed status
+	// or the Amazon Web Services Amazon SES-managed status is DISABLED , the aggregate
+	// status will be DISABLED and the entity will not be allowed to send emails. When
+	// the customer-managed status is set to REINSTATED , the entity can continue
+	// sending even if there are active reputation findings, provided the Amazon Web
+	// Services Amazon SES-managed status also permits sending. The entity can only
+	// send emails when both statuses permit sending.
+	SendingStatusAggregate SendingStatus
+
+	noSmithyDocumentSerde
+}
+
+func (v *ReputationEntity) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ReputationEntity)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ReputationEntity) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AwsSesManagedStatus != nil {
+		s.WriteStruct(schemas.ReputationEntity_AwsSesManagedStatus)
+		v.AwsSesManagedStatus.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.CustomerManagedStatus != nil {
+		s.WriteStruct(schemas.ReputationEntity_CustomerManagedStatus)
+		v.CustomerManagedStatus.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.ReputationEntityReference != nil {
+		s.WriteString(schemas.ReputationEntity_ReputationEntityReference, *v.ReputationEntityReference)
+	}
+	if v.ReputationEntityType != "" {
+		s.WriteString(schemas.ReputationEntity_ReputationEntityType, string(v.ReputationEntityType))
+	}
+	if v.ReputationImpact != "" {
+		s.WriteString(schemas.ReputationEntity_ReputationImpact, string(v.ReputationImpact))
+	}
+	if v.ReputationManagementPolicy != nil {
+		s.WriteString(schemas.ReputationEntity_ReputationManagementPolicy, *v.ReputationManagementPolicy)
+	}
+	if v.SendingStatusAggregate != "" {
+		s.WriteString(schemas.ReputationEntity_SendingStatusAggregate, string(v.SendingStatusAggregate))
+	}
+}
+func (v *ReputationEntity) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ReputationEntity, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ReputationEntity_AwsSesManagedStatus:
+			v.AwsSesManagedStatus = &StatusRecord{}
+			return v.AwsSesManagedStatus.Deserialize(d)
+		case schemas.ReputationEntity_CustomerManagedStatus:
+			v.CustomerManagedStatus = &StatusRecord{}
+			return v.CustomerManagedStatus.Deserialize(d)
+		case schemas.ReputationEntity_ReputationEntityReference:
+			v.ReputationEntityReference = new(string)
+			return d.ReadString(schemas.ReputationEntity_ReputationEntityReference, v.ReputationEntityReference)
+		case schemas.ReputationEntity_ReputationEntityType:
+			var ev string
+			if err := d.ReadString(schemas.ReputationEntity_ReputationEntityType, &ev); err != nil {
+				return err
+			}
+			v.ReputationEntityType = ReputationEntityType(ev)
+			return nil
+		case schemas.ReputationEntity_ReputationImpact:
+			var ev string
+			if err := d.ReadString(schemas.ReputationEntity_ReputationImpact, &ev); err != nil {
+				return err
+			}
+			v.ReputationImpact = RecommendationImpact(ev)
+			return nil
+		case schemas.ReputationEntity_ReputationManagementPolicy:
+			v.ReputationManagementPolicy = new(string)
+			return d.ReadString(schemas.ReputationEntity_ReputationManagementPolicy, v.ReputationManagementPolicy)
+		case schemas.ReputationEntity_SendingStatusAggregate:
+			var ev string
+			if err := d.ReadString(schemas.ReputationEntity_SendingStatusAggregate, &ev); err != nil {
+				return err
+			}
+			v.SendingStatusAggregate = SendingStatus(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // Enable or disable collection of reputation metrics for emails that you send
@@ -1911,6 +5575,91 @@ type ReputationOptions struct {
 	ReputationMetricsEnabled bool
 
 	noSmithyDocumentSerde
+}
+
+func (v *ReputationOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ReputationOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ReputationOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LastFreshStart != nil {
+		s.WriteTime(schemas.ReputationOptions_LastFreshStart, *v.LastFreshStart)
+	}
+	if v.ReputationMetricsEnabled != false {
+		s.WriteBool(schemas.ReputationOptions_ReputationMetricsEnabled, v.ReputationMetricsEnabled)
+	}
+}
+func (v *ReputationOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ReputationOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ReputationOptions_LastFreshStart:
+			v.LastFreshStart = new(time.Time)
+			return d.ReadTime(schemas.ReputationOptions_LastFreshStart, v.LastFreshStart)
+		case schemas.ReputationOptions_ReputationMetricsEnabled:
+			return d.ReadBool(schemas.ReputationOptions_ReputationMetricsEnabled, &v.ReputationMetricsEnabled)
+		}
+		return nil
+	})
+}
+
+// A structure that contains information about a tenant associated with a resource.
+type ResourceTenantMetadata struct {
+
+	// The date and time when the resource was associated with the tenant.
+	AssociatedTimestamp *time.Time
+
+	// The Amazon Resource Name (ARN) of the resource.
+	ResourceArn *string
+
+	// A unique identifier for the tenant associated with the resource.
+	TenantId *string
+
+	// The name of the tenant associated with the resource.
+	TenantName *string
+
+	noSmithyDocumentSerde
+}
+
+func (v *ResourceTenantMetadata) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ResourceTenantMetadata)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ResourceTenantMetadata) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AssociatedTimestamp != nil {
+		s.WriteTime(schemas.ResourceTenantMetadata_AssociatedTimestamp, *v.AssociatedTimestamp)
+	}
+	if v.ResourceArn != nil {
+		s.WriteString(schemas.ResourceTenantMetadata_ResourceArn, *v.ResourceArn)
+	}
+	if v.TenantId != nil {
+		s.WriteString(schemas.ResourceTenantMetadata_TenantId, *v.TenantId)
+	}
+	if v.TenantName != nil {
+		s.WriteString(schemas.ResourceTenantMetadata_TenantName, *v.TenantName)
+	}
+}
+func (v *ResourceTenantMetadata) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ResourceTenantMetadata, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ResourceTenantMetadata_AssociatedTimestamp:
+			v.AssociatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.ResourceTenantMetadata_AssociatedTimestamp, v.AssociatedTimestamp)
+		case schemas.ResourceTenantMetadata_ResourceArn:
+			v.ResourceArn = new(string)
+			return d.ReadString(schemas.ResourceTenantMetadata_ResourceArn, v.ResourceArn)
+		case schemas.ResourceTenantMetadata_TenantId:
+			v.TenantId = new(string)
+			return d.ReadString(schemas.ResourceTenantMetadata_TenantId, v.TenantId)
+		case schemas.ResourceTenantMetadata_TenantName:
+			v.TenantName = new(string)
+			return d.ReadString(schemas.ResourceTenantMetadata_TenantName, v.TenantName)
+		}
+		return nil
+	})
 }
 
 // An object that contains information about your account details review.
@@ -1938,6 +5687,105 @@ type ReviewDetails struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ReviewDetails) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ReviewDetails)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ReviewDetails) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CaseId != nil {
+		s.WriteString(schemas.ReviewDetails_CaseId, *v.CaseId)
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.ReviewDetails_Status, string(v.Status))
+	}
+}
+func (v *ReviewDetails) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ReviewDetails, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ReviewDetails_CaseId:
+			v.CaseId = new(string)
+			return d.ReadString(schemas.ReviewDetails_CaseId, v.CaseId)
+		case schemas.ReviewDetails_Status:
+			var ev string
+			if err := d.ReadString(schemas.ReviewDetails_Status, &ev); err != nil {
+				return err
+			}
+			v.Status = ReviewStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
+// An object which contains an AWS-Region and routing status.
+type Route struct {
+
+	// The name of an AWS-Region.
+	//
+	// This member is required.
+	Region *string
+
+	noSmithyDocumentSerde
+}
+
+func (v *Route) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Route)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Route) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Region != nil {
+		s.WriteString(schemas.Route_Region, *v.Region)
+	}
+}
+func (v *Route) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Route, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Route_Region:
+			v.Region = new(string)
+			return d.ReadString(schemas.Route_Region, v.Region)
+		}
+		return nil
+	})
+}
+
+// An object that contains route configuration. Includes secondary region name.
+type RouteDetails struct {
+
+	// The name of an AWS-Region to be a secondary region for the multi-region
+	// endpoint (global-endpoint).
+	//
+	// This member is required.
+	Region *string
+
+	noSmithyDocumentSerde
+}
+
+func (v *RouteDetails) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.RouteDetails)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *RouteDetails) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Region != nil {
+		s.WriteString(schemas.RouteDetails_Region, *v.Region)
+	}
+}
+func (v *RouteDetails) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.RouteDetails, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.RouteDetails_Region:
+			v.Region = new(string)
+			return d.ReadString(schemas.RouteDetails_Region, v.Region)
+		}
+		return nil
+	})
+}
+
 // Used to enable or disable email sending for messages that use this
 // configuration set in the current Amazon Web Services Region.
 type SendingOptions struct {
@@ -1947,6 +5795,27 @@ type SendingOptions struct {
 	SendingEnabled bool
 
 	noSmithyDocumentSerde
+}
+
+func (v *SendingOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SendingOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SendingOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SendingEnabled != false {
+		s.WriteBool(schemas.SendingOptions_SendingEnabled, v.SendingEnabled)
+	}
+}
+func (v *SendingOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SendingOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SendingOptions_SendingEnabled:
+			return d.ReadBool(schemas.SendingOptions_SendingEnabled, &v.SendingEnabled)
+		}
+		return nil
+	})
 }
 
 // An object that contains information about the per-day and per-second sending
@@ -1970,6 +5839,121 @@ type SendQuota struct {
 	noSmithyDocumentSerde
 }
 
+func (v *SendQuota) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SendQuota)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SendQuota) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Max24HourSend != 0 {
+		s.WriteFloat64(schemas.SendQuota_Max24HourSend, v.Max24HourSend)
+	}
+	if v.MaxSendRate != 0 {
+		s.WriteFloat64(schemas.SendQuota_MaxSendRate, v.MaxSendRate)
+	}
+	if v.SentLast24Hours != 0 {
+		s.WriteFloat64(schemas.SendQuota_SentLast24Hours, v.SentLast24Hours)
+	}
+}
+func (v *SendQuota) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SendQuota, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SendQuota_Max24HourSend:
+			return d.ReadFloat64(schemas.SendQuota_Max24HourSend, &v.Max24HourSend)
+		case schemas.SendQuota_MaxSendRate:
+			return d.ReadFloat64(schemas.SendQuota_MaxSendRate, &v.MaxSendRate)
+		case schemas.SendQuota_SentLast24Hours:
+			return d.ReadFloat64(schemas.SendQuota_SentLast24Hours, &v.SentLast24Hours)
+		}
+		return nil
+	})
+}
+
+// Specifies the signing scheme to apply to messages sent with a configuration
+// set. This is a union type, so you specify exactly one of its members.
+//
+// The following types satisfy this interface:
+//
+//	SigningSchemeMemberDefaultScheme
+//	SigningSchemeMemberSmimeScheme
+type SigningScheme interface {
+	isSigningScheme()
+}
+
+// Use the default signing behavior. When you select this option, Amazon SES API
+// v2 doesn't add an S/MIME signature to messages sent with the configuration set.
+type SigningSchemeMemberDefaultScheme struct {
+	Value DefaultSigningScheme
+
+	noSmithyDocumentSerde
+}
+
+func (*SigningSchemeMemberDefaultScheme) isSigningScheme() {}
+func (v *SigningSchemeMemberDefaultScheme) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SigningScheme_DefaultScheme)
+	v.Value.SerializeMembers(s)
+	s.CloseStruct()
+}
+func (v *SigningSchemeMemberDefaultScheme) Deserialize(d smithy.ShapeDeserializer) error {
+	return v.Value.Deserialize(d)
+}
+
+// Sign messages sent with the configuration set using S/MIME. For signing to
+// apply, the email identity used to send a message must have an active S/MIME
+// certificate association.
+type SigningSchemeMemberSmimeScheme struct {
+	Value SmimeSigningScheme
+
+	noSmithyDocumentSerde
+}
+
+func (*SigningSchemeMemberSmimeScheme) isSigningScheme() {}
+func (v *SigningSchemeMemberSmimeScheme) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SigningScheme_SmimeScheme)
+	v.Value.SerializeMembers(s)
+	s.CloseStruct()
+}
+func (v *SigningSchemeMemberSmimeScheme) Deserialize(d smithy.ShapeDeserializer) error {
+	return v.Value.Deserialize(d)
+}
+
+// Specifies that Amazon SES API v2 signs messages sent with the configuration set
+// using S/MIME.
+type SmimeSigningScheme struct {
+
+	// The format of the S/MIME signature that Amazon SES API v2 applies to messages.
+	SignatureFormat SignatureFormat
+
+	noSmithyDocumentSerde
+}
+
+func (v *SmimeSigningScheme) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SmimeSigningScheme)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SmimeSigningScheme) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SignatureFormat != "" {
+		s.WriteString(schemas.SmimeSigningScheme_SignatureFormat, string(v.SignatureFormat))
+	}
+}
+func (v *SmimeSigningScheme) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SmimeSigningScheme, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SmimeSigningScheme_SignatureFormat:
+			var ev string
+			if err := d.ReadString(schemas.SmimeSigningScheme_SignatureFormat, &ev); err != nil {
+				return err
+			}
+			v.SignatureFormat = SignatureFormat(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object that defines an Amazon SNS destination for email events. You can use
 // Amazon SNS to send notifications when certain email events occur.
 type SnsDestination struct {
@@ -1983,6 +5967,28 @@ type SnsDestination struct {
 	TopicArn *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *SnsDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SnsDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SnsDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.TopicArn != nil {
+		s.WriteString(schemas.SnsDestination_TopicArn, *v.TopicArn)
+	}
+}
+func (v *SnsDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SnsDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SnsDestination_TopicArn:
+			v.TopicArn = new(string)
+			return d.ReadString(schemas.SnsDestination_TopicArn, v.TopicArn)
+		}
+		return nil
+	})
 }
 
 // An object that contains information about the start of authority (SOA) record
@@ -2001,11 +6007,106 @@ type SOARecord struct {
 	noSmithyDocumentSerde
 }
 
+func (v *SOARecord) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SOARecord)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SOARecord) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AdminEmail != nil {
+		s.WriteString(schemas.SOARecord_AdminEmail, *v.AdminEmail)
+	}
+	if v.PrimaryNameServer != nil {
+		s.WriteString(schemas.SOARecord_PrimaryNameServer, *v.PrimaryNameServer)
+	}
+	if v.SerialNumber != 0 {
+		s.WriteInt64(schemas.SOARecord_SerialNumber, v.SerialNumber)
+	}
+}
+func (v *SOARecord) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SOARecord, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SOARecord_AdminEmail:
+			v.AdminEmail = new(string)
+			return d.ReadString(schemas.SOARecord_AdminEmail, v.AdminEmail)
+		case schemas.SOARecord_PrimaryNameServer:
+			v.PrimaryNameServer = new(string)
+			return d.ReadString(schemas.SOARecord_PrimaryNameServer, v.PrimaryNameServer)
+		case schemas.SOARecord_SerialNumber:
+			return d.ReadInt64(schemas.SOARecord_SerialNumber, &v.SerialNumber)
+		}
+		return nil
+	})
+}
+
+// An object that contains status information for a reputation entity, including
+// the current status, cause description, and timestamp.
+type StatusRecord struct {
+
+	// A description of the reason for the current status, or null if no specific
+	// cause is available.
+	Cause *string
+
+	// The timestamp when this status was last updated.
+	LastUpdatedTimestamp *time.Time
+
+	// The current sending status. This can be one of the following:
+	//
+	//   - ENABLED – Sending is allowed.
+	//
+	//   - DISABLED – Sending is prevented.
+	//
+	//   - REINSTATED – Sending is allowed even with active reputation findings.
+	Status SendingStatus
+
+	noSmithyDocumentSerde
+}
+
+func (v *StatusRecord) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.StatusRecord)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *StatusRecord) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Cause != nil {
+		s.WriteString(schemas.StatusRecord_Cause, *v.Cause)
+	}
+	if v.LastUpdatedTimestamp != nil {
+		s.WriteTime(schemas.StatusRecord_LastUpdatedTimestamp, *v.LastUpdatedTimestamp)
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.StatusRecord_Status, string(v.Status))
+	}
+}
+func (v *StatusRecord) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.StatusRecord, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.StatusRecord_Cause:
+			v.Cause = new(string)
+			return d.ReadString(schemas.StatusRecord_Cause, v.Cause)
+		case schemas.StatusRecord_LastUpdatedTimestamp:
+			v.LastUpdatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.StatusRecord_LastUpdatedTimestamp, v.LastUpdatedTimestamp)
+		case schemas.StatusRecord_Status:
+			var ev string
+			if err := d.ReadString(schemas.StatusRecord_Status, &ev); err != nil {
+				return err
+			}
+			v.Status = SendingStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object that contains information about an email address that is on the
-// suppression list for your account.
+// suppression list for your account or for a specific tenant.
 type SuppressedDestination struct {
 
-	// The email address that is on the suppression list for your account.
+	// The email address that is on the suppression list for your account or for a
+	// specific tenant.
 	//
 	// This member is required.
 	EmailAddress *string
@@ -2016,37 +6117,125 @@ type SuppressedDestination struct {
 	// This member is required.
 	LastUpdateTime *time.Time
 
-	// The reason that the address was added to the suppression list for your account.
+	// The reason that the address was added to the suppression list for your account
+	// or for a specific tenant.
 	//
 	// This member is required.
 	Reason SuppressionListReason
 
 	// An optional value that can contain additional information about the reasons
-	// that the address was added to the suppression list for your account.
+	// that the address was added to the suppression list for your account or for a
+	// specific tenant.
 	Attributes *SuppressedDestinationAttributes
+
+	// The name of the tenant that the suppressed destination belongs to. This field
+	// is present only when the suppressed destination is on a tenant's suppression
+	// list.
+	TenantName *string
 
 	noSmithyDocumentSerde
 }
 
+func (v *SuppressedDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressedDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressedDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Attributes != nil {
+		s.WriteStruct(schemas.SuppressedDestination_Attributes)
+		v.Attributes.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.EmailAddress != nil {
+		s.WriteString(schemas.SuppressedDestination_EmailAddress, *v.EmailAddress)
+	}
+	if v.LastUpdateTime != nil {
+		s.WriteTime(schemas.SuppressedDestination_LastUpdateTime, *v.LastUpdateTime)
+	}
+	if v.Reason != "" {
+		s.WriteString(schemas.SuppressedDestination_Reason, string(v.Reason))
+	}
+	if v.TenantName != nil {
+		s.WriteString(schemas.SuppressedDestination_TenantName, *v.TenantName)
+	}
+}
+func (v *SuppressedDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressedDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressedDestination_Attributes:
+			v.Attributes = &SuppressedDestinationAttributes{}
+			return v.Attributes.Deserialize(d)
+		case schemas.SuppressedDestination_EmailAddress:
+			v.EmailAddress = new(string)
+			return d.ReadString(schemas.SuppressedDestination_EmailAddress, v.EmailAddress)
+		case schemas.SuppressedDestination_LastUpdateTime:
+			v.LastUpdateTime = new(time.Time)
+			return d.ReadTime(schemas.SuppressedDestination_LastUpdateTime, v.LastUpdateTime)
+		case schemas.SuppressedDestination_Reason:
+			var ev string
+			if err := d.ReadString(schemas.SuppressedDestination_Reason, &ev); err != nil {
+				return err
+			}
+			v.Reason = SuppressionListReason(ev)
+			return nil
+		case schemas.SuppressedDestination_TenantName:
+			v.TenantName = new(string)
+			return d.ReadString(schemas.SuppressedDestination_TenantName, v.TenantName)
+		}
+		return nil
+	})
+}
+
 // An object that contains additional attributes that are related an email address
-// that is on the suppression list for your account.
+// that is on the suppression list for your account or for a specific tenant.
 type SuppressedDestinationAttributes struct {
 
 	// A unique identifier that's generated when an email address is added to the
-	// suppression list for your account.
+	// suppression list for your account or for a specific tenant.
 	FeedbackId *string
 
 	// The unique identifier of the email message that caused the email address to be
-	// added to the suppression list for your account.
+	// added to the suppression list for your account or for a specific tenant.
 	MessageId *string
 
 	noSmithyDocumentSerde
 }
 
+func (v *SuppressedDestinationAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressedDestinationAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressedDestinationAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FeedbackId != nil {
+		s.WriteString(schemas.SuppressedDestinationAttributes_FeedbackId, *v.FeedbackId)
+	}
+	if v.MessageId != nil {
+		s.WriteString(schemas.SuppressedDestinationAttributes_MessageId, *v.MessageId)
+	}
+}
+func (v *SuppressedDestinationAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressedDestinationAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressedDestinationAttributes_FeedbackId:
+			v.FeedbackId = new(string)
+			return d.ReadString(schemas.SuppressedDestinationAttributes_FeedbackId, v.FeedbackId)
+		case schemas.SuppressedDestinationAttributes_MessageId:
+			v.MessageId = new(string)
+			return d.ReadString(schemas.SuppressedDestinationAttributes_MessageId, v.MessageId)
+		}
+		return nil
+	})
+}
+
 // A summary that describes the suppressed email address.
 type SuppressedDestinationSummary struct {
 
-	// The email address that's on the suppression list for your account.
+	// The email address that's on the suppression list for your account or for a
+	// specific tenant.
 	//
 	// This member is required.
 	EmailAddress *string
@@ -2057,12 +6246,51 @@ type SuppressedDestinationSummary struct {
 	// This member is required.
 	LastUpdateTime *time.Time
 
-	// The reason that the address was added to the suppression list for your account.
+	// The reason that the address was added to the suppression list for your account
+	// or for a specific tenant.
 	//
 	// This member is required.
 	Reason SuppressionListReason
 
 	noSmithyDocumentSerde
+}
+
+func (v *SuppressedDestinationSummary) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressedDestinationSummary)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressedDestinationSummary) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.EmailAddress != nil {
+		s.WriteString(schemas.SuppressedDestinationSummary_EmailAddress, *v.EmailAddress)
+	}
+	if v.LastUpdateTime != nil {
+		s.WriteTime(schemas.SuppressedDestinationSummary_LastUpdateTime, *v.LastUpdateTime)
+	}
+	if v.Reason != "" {
+		s.WriteString(schemas.SuppressedDestinationSummary_Reason, string(v.Reason))
+	}
+}
+func (v *SuppressedDestinationSummary) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressedDestinationSummary, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressedDestinationSummary_EmailAddress:
+			v.EmailAddress = new(string)
+			return d.ReadString(schemas.SuppressedDestinationSummary_EmailAddress, v.EmailAddress)
+		case schemas.SuppressedDestinationSummary_LastUpdateTime:
+			v.LastUpdateTime = new(time.Time)
+			return d.ReadTime(schemas.SuppressedDestinationSummary_LastUpdateTime, v.LastUpdateTime)
+		case schemas.SuppressedDestinationSummary_Reason:
+			var ev string
+			if err := d.ReadString(schemas.SuppressedDestinationSummary_Reason, &ev); err != nil {
+				return err
+			}
+			v.Reason = SuppressionListReason(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An object that contains information about the email address suppression
@@ -2080,7 +6308,130 @@ type SuppressionAttributes struct {
 	//   account when a message sent to that address results in a hard bounce.
 	SuppressedReasons []SuppressionListReason
 
+	// Structure containing validation attributes used for suppressing sending to
+	// specific destination on account level.
+	ValidationAttributes *SuppressionValidationAttributes
+
 	noSmithyDocumentSerde
+}
+
+func (v *SuppressionAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressionAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressionAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SuppressedReasons != nil {
+		serializeSuppressionListReasons(s, schemas.SuppressionAttributes_SuppressedReasons, v.SuppressedReasons)
+	}
+	if v.ValidationAttributes != nil {
+		s.WriteStruct(schemas.SuppressionAttributes_ValidationAttributes)
+		v.ValidationAttributes.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *SuppressionAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressionAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressionAttributes_SuppressedReasons:
+			return deserializeSuppressionListReasons(d, schemas.SuppressionAttributes_SuppressedReasons, &v.SuppressedReasons)
+		case schemas.SuppressionAttributes_ValidationAttributes:
+			v.ValidationAttributes = &SuppressionValidationAttributes{}
+			return v.ValidationAttributes.Deserialize(d)
+		}
+		return nil
+	})
+}
+
+// Contains Auto Validation settings, allowing you to suppress sending to specific
+// destination(s) if they do not meet required threshold. For details on Auto
+// Validation, see [Auto Validation].
+//
+// [Auto Validation]: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/email-validation.html
+type SuppressionConditionThreshold struct {
+
+	// Indicates whether Auto Validation is enabled for suppression. Set to ENABLED to
+	// enable the Auto Validation feature, or set to DISABLED to disable it.
+	//
+	// This member is required.
+	ConditionThresholdEnabled FeatureStatus
+
+	// The overall confidence threshold used to determine suppression decisions.
+	OverallConfidenceThreshold *SuppressionConfidenceThreshold
+
+	noSmithyDocumentSerde
+}
+
+func (v *SuppressionConditionThreshold) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressionConditionThreshold)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressionConditionThreshold) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ConditionThresholdEnabled != "" {
+		s.WriteString(schemas.SuppressionConditionThreshold_ConditionThresholdEnabled, string(v.ConditionThresholdEnabled))
+	}
+	if v.OverallConfidenceThreshold != nil {
+		s.WriteStruct(schemas.SuppressionConditionThreshold_OverallConfidenceThreshold)
+		v.OverallConfidenceThreshold.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *SuppressionConditionThreshold) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressionConditionThreshold, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressionConditionThreshold_ConditionThresholdEnabled:
+			var ev string
+			if err := d.ReadString(schemas.SuppressionConditionThreshold_ConditionThresholdEnabled, &ev); err != nil {
+				return err
+			}
+			v.ConditionThresholdEnabled = FeatureStatus(ev)
+			return nil
+		case schemas.SuppressionConditionThreshold_OverallConfidenceThreshold:
+			v.OverallConfidenceThreshold = &SuppressionConfidenceThreshold{}
+			return v.OverallConfidenceThreshold.Deserialize(d)
+		}
+		return nil
+	})
+}
+
+// Contains the confidence threshold settings for Auto Validation.
+type SuppressionConfidenceThreshold struct {
+
+	// The confidence level threshold for suppression decisions.
+	//
+	// This member is required.
+	ConfidenceVerdictThreshold SuppressionConfidenceVerdictThreshold
+
+	noSmithyDocumentSerde
+}
+
+func (v *SuppressionConfidenceThreshold) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressionConfidenceThreshold)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressionConfidenceThreshold) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ConfidenceVerdictThreshold != "" {
+		s.WriteString(schemas.SuppressionConfidenceThreshold_ConfidenceVerdictThreshold, string(v.ConfidenceVerdictThreshold))
+	}
+}
+func (v *SuppressionConfidenceThreshold) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressionConfidenceThreshold, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressionConfidenceThreshold_ConfidenceVerdictThreshold:
+			var ev string
+			if err := d.ReadString(schemas.SuppressionConfidenceThreshold_ConfidenceVerdictThreshold, &ev); err != nil {
+				return err
+			}
+			v.ConfidenceVerdictThreshold = SuppressionConfidenceVerdictThreshold(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An object that contains details about the action of suppression list.
@@ -2099,22 +6450,172 @@ type SuppressionListDestination struct {
 	noSmithyDocumentSerde
 }
 
+func (v *SuppressionListDestination) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressionListDestination)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressionListDestination) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SuppressionListImportAction != "" {
+		s.WriteString(schemas.SuppressionListDestination_SuppressionListImportAction, string(v.SuppressionListImportAction))
+	}
+}
+func (v *SuppressionListDestination) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressionListDestination, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressionListDestination_SuppressionListImportAction:
+			var ev string
+			if err := d.ReadString(schemas.SuppressionListDestination_SuppressionListImportAction, &ev); err != nil {
+				return err
+			}
+			v.SuppressionListImportAction = SuppressionListImportAction(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object that contains information about the suppression list preferences for
-// your account.
+// your account or for a specific tenant.
 type SuppressionOptions struct {
 
 	// A list that contains the reasons that email addresses are automatically added
-	// to the suppression list for your account. This list can contain any or all of
-	// the following:
+	// to the suppression list for your account or for a specific tenant. This list can
+	// contain any or all of the following:
 	//
 	//   - COMPLAINT – Amazon SES adds an email address to the suppression list for
-	//   your account when a message sent to that address results in a complaint.
+	//   your account or for a specific tenant when a message sent to that address
+	//   results in a complaint.
 	//
 	//   - BOUNCE – Amazon SES adds an email address to the suppression list for your
-	//   account when a message sent to that address results in a hard bounce.
+	//   account or for a specific tenant when a message sent to that address results in
+	//   a hard bounce.
 	SuppressedReasons []SuppressionListReason
 
+	// The suppression scope for the configuration set. This overrides the tenant or
+	// account suppression scope for emails sent using this configuration set. Can be
+	// one of the following:
+	//
+	//   - TENANT – Use the tenant's suppression list.
+	//
+	//   - ACCOUNT – Use the account-level suppression list.
+	SuppressionScope SuppressionListScope
+
+	// Contains validation options for email address suppression.
+	ValidationOptions *SuppressionValidationOptions
+
 	noSmithyDocumentSerde
+}
+
+func (v *SuppressionOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressionOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressionOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SuppressedReasons != nil {
+		serializeSuppressionListReasons(s, schemas.SuppressionOptions_SuppressedReasons, v.SuppressedReasons)
+	}
+	if v.SuppressionScope != "" {
+		s.WriteString(schemas.SuppressionOptions_SuppressionScope, string(v.SuppressionScope))
+	}
+	if v.ValidationOptions != nil {
+		s.WriteStruct(schemas.SuppressionOptions_ValidationOptions)
+		v.ValidationOptions.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *SuppressionOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressionOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressionOptions_SuppressedReasons:
+			return deserializeSuppressionListReasons(d, schemas.SuppressionOptions_SuppressedReasons, &v.SuppressedReasons)
+		case schemas.SuppressionOptions_SuppressionScope:
+			var ev string
+			if err := d.ReadString(schemas.SuppressionOptions_SuppressionScope, &ev); err != nil {
+				return err
+			}
+			v.SuppressionScope = SuppressionListScope(ev)
+			return nil
+		case schemas.SuppressionOptions_ValidationOptions:
+			v.ValidationOptions = &SuppressionValidationOptions{}
+			return v.ValidationOptions.Deserialize(d)
+		}
+		return nil
+	})
+}
+
+// Structure containing validation attributes used for suppressing sending to
+// specific destination on account level.
+type SuppressionValidationAttributes struct {
+
+	// Specifies the condition threshold settings for account-level suppression.
+	//
+	// This member is required.
+	ConditionThreshold *SuppressionConditionThreshold
+
+	noSmithyDocumentSerde
+}
+
+func (v *SuppressionValidationAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressionValidationAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressionValidationAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ConditionThreshold != nil {
+		s.WriteStruct(schemas.SuppressionValidationAttributes_ConditionThreshold)
+		v.ConditionThreshold.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *SuppressionValidationAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressionValidationAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressionValidationAttributes_ConditionThreshold:
+			v.ConditionThreshold = &SuppressionConditionThreshold{}
+			return v.ConditionThreshold.Deserialize(d)
+		}
+		return nil
+	})
+}
+
+// Contains validation options for email address suppression.
+type SuppressionValidationOptions struct {
+
+	// Specifies the condition threshold settings for suppression validation.
+	//
+	// This member is required.
+	ConditionThreshold *SuppressionConditionThreshold
+
+	noSmithyDocumentSerde
+}
+
+func (v *SuppressionValidationOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SuppressionValidationOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SuppressionValidationOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ConditionThreshold != nil {
+		s.WriteStruct(schemas.SuppressionValidationOptions_ConditionThreshold)
+		v.ConditionThreshold.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *SuppressionValidationOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SuppressionValidationOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SuppressionValidationOptions_ConditionThreshold:
+			v.ConditionThreshold = &SuppressionConditionThreshold{}
+			return v.ConditionThreshold.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An object that defines the tags that are associated with a resource. A tag is a
@@ -2165,6 +6666,34 @@ type Tag struct {
 	noSmithyDocumentSerde
 }
 
+func (v *Tag) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Tag)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Tag) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Key != nil {
+		s.WriteString(schemas.Tag_Key, *v.Key)
+	}
+	if v.Value != nil {
+		s.WriteString(schemas.Tag_Value, *v.Value)
+	}
+}
+func (v *Tag) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Tag, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Tag_Key:
+			v.Key = new(string)
+			return d.ReadString(schemas.Tag_Key, v.Key)
+		case schemas.Tag_Value:
+			v.Value = new(string)
+			return d.ReadString(schemas.Tag_Value, v.Value)
+		}
+		return nil
+	})
+}
+
 // An object that defines the email template to use for an email message, and the
 // values to use for any message variables in that template. An email template is a
 // type of message template that contains content that you want to reuse in email
@@ -2172,6 +6701,10 @@ type Tag struct {
 // name or ARN of an email template previously saved in your Amazon SES account or
 // by providing the full template content.
 type Template struct {
+
+	//  The List of attachments to include in your email. All recipients will receive
+	// the same attachments.
+	Attachments []Attachment
 
 	// The list of message headers that will be added to the email message.
 	Headers []MessageHeader
@@ -2193,10 +6726,340 @@ type Template struct {
 	TemplateData *string
 
 	// The name of the template. You will refer to this name when you send email using
-	// the SendTemplatedEmail or SendBulkTemplatedEmail operations.
+	// the SendEmail or SendBulkEmail operations.
 	TemplateName *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *Template) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Template)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Template) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Attachments != nil {
+		serializeAttachmentList(s, schemas.Template_Attachments, v.Attachments)
+	}
+	if v.Headers != nil {
+		serializeMessageHeaderList(s, schemas.Template_Headers, v.Headers)
+	}
+	if v.TemplateArn != nil {
+		s.WriteString(schemas.Template_TemplateArn, *v.TemplateArn)
+	}
+	if v.TemplateContent != nil {
+		s.WriteStruct(schemas.Template_TemplateContent)
+		v.TemplateContent.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.TemplateData != nil {
+		s.WriteString(schemas.Template_TemplateData, *v.TemplateData)
+	}
+	if v.TemplateName != nil {
+		s.WriteString(schemas.Template_TemplateName, *v.TemplateName)
+	}
+}
+func (v *Template) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Template, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Template_Attachments:
+			return deserializeAttachmentList(d, schemas.Template_Attachments, &v.Attachments)
+		case schemas.Template_Headers:
+			return deserializeMessageHeaderList(d, schemas.Template_Headers, &v.Headers)
+		case schemas.Template_TemplateArn:
+			v.TemplateArn = new(string)
+			return d.ReadString(schemas.Template_TemplateArn, v.TemplateArn)
+		case schemas.Template_TemplateContent:
+			v.TemplateContent = &EmailTemplateContent{}
+			return v.TemplateContent.Deserialize(d)
+		case schemas.Template_TemplateData:
+			v.TemplateData = new(string)
+			return d.ReadString(schemas.Template_TemplateData, v.TemplateData)
+		case schemas.Template_TemplateName:
+			v.TemplateName = new(string)
+			return d.ReadString(schemas.Template_TemplateName, v.TemplateName)
+		}
+		return nil
+	})
+}
+
+// A structure that contains details about a tenant.
+type Tenant struct {
+
+	// The date and time when the tenant was created.
+	CreatedTimestamp *time.Time
+
+	// The status of sending capability for the tenant:
+	//
+	//   - ENABLED – Sending is allowed for the tenant.
+	//
+	//   - DISABLED – Sending is prevented for the tenant.
+	//
+	//   - REINSTATED – Sending is allowed even if there are active reputation findings.
+	SendingStatus SendingStatus
+
+	// An object that contains information about the suppression list preferences for
+	// the tenant.
+	SuppressionAttributes *TenantSuppressionAttributes
+
+	// An array of objects that define the tags (keys and values) associated with the
+	// tenant.
+	Tags []Tag
+
+	// The Amazon Resource Name (ARN) of the tenant.
+	TenantArn *string
+
+	// A unique identifier for the tenant.
+	TenantId *string
+
+	// The name of the tenant.
+	TenantName *string
+
+	noSmithyDocumentSerde
+}
+
+func (v *Tenant) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Tenant)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Tenant) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreatedTimestamp != nil {
+		s.WriteTime(schemas.Tenant_CreatedTimestamp, *v.CreatedTimestamp)
+	}
+	if v.SendingStatus != "" {
+		s.WriteString(schemas.Tenant_SendingStatus, string(v.SendingStatus))
+	}
+	if v.SuppressionAttributes != nil {
+		s.WriteStruct(schemas.Tenant_SuppressionAttributes)
+		v.SuppressionAttributes.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Tags != nil {
+		serializeTagList(s, schemas.Tenant_Tags, v.Tags)
+	}
+	if v.TenantArn != nil {
+		s.WriteString(schemas.Tenant_TenantArn, *v.TenantArn)
+	}
+	if v.TenantId != nil {
+		s.WriteString(schemas.Tenant_TenantId, *v.TenantId)
+	}
+	if v.TenantName != nil {
+		s.WriteString(schemas.Tenant_TenantName, *v.TenantName)
+	}
+}
+func (v *Tenant) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Tenant, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Tenant_CreatedTimestamp:
+			v.CreatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.Tenant_CreatedTimestamp, v.CreatedTimestamp)
+		case schemas.Tenant_SendingStatus:
+			var ev string
+			if err := d.ReadString(schemas.Tenant_SendingStatus, &ev); err != nil {
+				return err
+			}
+			v.SendingStatus = SendingStatus(ev)
+			return nil
+		case schemas.Tenant_SuppressionAttributes:
+			v.SuppressionAttributes = &TenantSuppressionAttributes{}
+			return v.SuppressionAttributes.Deserialize(d)
+		case schemas.Tenant_Tags:
+			return deserializeTagList(d, schemas.Tenant_Tags, &v.Tags)
+		case schemas.Tenant_TenantArn:
+			v.TenantArn = new(string)
+			return d.ReadString(schemas.Tenant_TenantArn, v.TenantArn)
+		case schemas.Tenant_TenantId:
+			v.TenantId = new(string)
+			return d.ReadString(schemas.Tenant_TenantId, v.TenantId)
+		case schemas.Tenant_TenantName:
+			v.TenantName = new(string)
+			return d.ReadString(schemas.Tenant_TenantName, v.TenantName)
+		}
+		return nil
+	})
+}
+
+// A structure that contains basic information about a tenant.
+type TenantInfo struct {
+
+	// The date and time when the tenant was created.
+	CreatedTimestamp *time.Time
+
+	// The status of sending capability for the tenant:
+	//
+	//   - ENABLED – Sending is allowed for the tenant.
+	//
+	//   - DISABLED – Sending is prevented for the tenant.
+	//
+	//   - REINSTATED – Sending is allowed even if there are active reputation findings.
+	SendingStatus SendingStatus
+
+	// The Amazon Resource Name (ARN) of the tenant.
+	TenantArn *string
+
+	// A unique identifier for the tenant.
+	TenantId *string
+
+	// The name of the tenant.
+	TenantName *string
+
+	noSmithyDocumentSerde
+}
+
+func (v *TenantInfo) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TenantInfo)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TenantInfo) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreatedTimestamp != nil {
+		s.WriteTime(schemas.TenantInfo_CreatedTimestamp, *v.CreatedTimestamp)
+	}
+	if v.SendingStatus != "" {
+		s.WriteString(schemas.TenantInfo_SendingStatus, string(v.SendingStatus))
+	}
+	if v.TenantArn != nil {
+		s.WriteString(schemas.TenantInfo_TenantArn, *v.TenantArn)
+	}
+	if v.TenantId != nil {
+		s.WriteString(schemas.TenantInfo_TenantId, *v.TenantId)
+	}
+	if v.TenantName != nil {
+		s.WriteString(schemas.TenantInfo_TenantName, *v.TenantName)
+	}
+}
+func (v *TenantInfo) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.TenantInfo, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.TenantInfo_CreatedTimestamp:
+			v.CreatedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.TenantInfo_CreatedTimestamp, v.CreatedTimestamp)
+		case schemas.TenantInfo_SendingStatus:
+			var ev string
+			if err := d.ReadString(schemas.TenantInfo_SendingStatus, &ev); err != nil {
+				return err
+			}
+			v.SendingStatus = SendingStatus(ev)
+			return nil
+		case schemas.TenantInfo_TenantArn:
+			v.TenantArn = new(string)
+			return d.ReadString(schemas.TenantInfo_TenantArn, v.TenantArn)
+		case schemas.TenantInfo_TenantId:
+			v.TenantId = new(string)
+			return d.ReadString(schemas.TenantInfo_TenantId, v.TenantId)
+		case schemas.TenantInfo_TenantName:
+			v.TenantName = new(string)
+			return d.ReadString(schemas.TenantInfo_TenantName, v.TenantName)
+		}
+		return nil
+	})
+}
+
+// A structure that contains information about a resource associated with a tenant.
+type TenantResource struct {
+
+	// The Amazon Resource Name (ARN) of the resource associated with the tenant.
+	ResourceArn *string
+
+	// The type of resource associated with the tenant. Valid values are EMAIL_IDENTITY
+	// , CONFIGURATION_SET , or EMAIL_TEMPLATE .
+	ResourceType ResourceType
+
+	noSmithyDocumentSerde
+}
+
+func (v *TenantResource) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TenantResource)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TenantResource) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ResourceArn != nil {
+		s.WriteString(schemas.TenantResource_ResourceArn, *v.ResourceArn)
+	}
+	if v.ResourceType != "" {
+		s.WriteString(schemas.TenantResource_ResourceType, string(v.ResourceType))
+	}
+}
+func (v *TenantResource) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.TenantResource, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.TenantResource_ResourceArn:
+			v.ResourceArn = new(string)
+			return d.ReadString(schemas.TenantResource_ResourceArn, v.ResourceArn)
+		case schemas.TenantResource_ResourceType:
+			var ev string
+			if err := d.ReadString(schemas.TenantResource_ResourceType, &ev); err != nil {
+				return err
+			}
+			v.ResourceType = ResourceType(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
+// An object that contains the suppression list preferences for a tenant.
+type TenantSuppressionAttributes struct {
+
+	// A list that contains the reasons that email addresses are automatically added
+	// to the suppression list for the tenant. This list can contain any or all of the
+	// following:
+	//
+	//   - COMPLAINT – Amazon SES adds an email address to the suppression list when a
+	//   message sent to that address results in a complaint.
+	//
+	//   - BOUNCE – Amazon SES adds an email address to the suppression list when a
+	//   message sent to that address results in a hard bounce.
+	SuppressedReasons []SuppressionListReason
+
+	// The suppression scope for the tenant. Can be one of the following:
+	//
+	//   - TENANT – The tenant uses its own suppression list.
+	//
+	//   - ACCOUNT – The tenant uses the account-level suppression list.
+	//
+	// If you don't specify a suppression scope, the tenant defaults to ACCOUNT scope
+	// and uses the account-level suppression list.
+	SuppressionScope SuppressionListScope
+
+	noSmithyDocumentSerde
+}
+
+func (v *TenantSuppressionAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TenantSuppressionAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TenantSuppressionAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SuppressedReasons != nil {
+		serializeSuppressionListReasons(s, schemas.TenantSuppressionAttributes_SuppressedReasons, v.SuppressedReasons)
+	}
+	if v.SuppressionScope != "" {
+		s.WriteString(schemas.TenantSuppressionAttributes_SuppressionScope, string(v.SuppressionScope))
+	}
+}
+func (v *TenantSuppressionAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.TenantSuppressionAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.TenantSuppressionAttributes_SuppressedReasons:
+			return deserializeSuppressionListReasons(d, schemas.TenantSuppressionAttributes_SuppressedReasons, &v.SuppressedReasons)
+		case schemas.TenantSuppressionAttributes_SuppressionScope:
+			var ev string
+			if err := d.ReadString(schemas.TenantSuppressionAttributes_SuppressionScope, &ev); err != nil {
+				return err
+			}
+			v.SuppressionScope = SuppressionListScope(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An interest group, theme, or label within a list. Lists can have multiple
@@ -2225,6 +7088,50 @@ type Topic struct {
 	noSmithyDocumentSerde
 }
 
+func (v *Topic) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Topic)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *Topic) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DefaultSubscriptionStatus != "" {
+		s.WriteString(schemas.Topic_DefaultSubscriptionStatus, string(v.DefaultSubscriptionStatus))
+	}
+	if v.Description != nil {
+		s.WriteString(schemas.Topic_Description, *v.Description)
+	}
+	if v.DisplayName != nil {
+		s.WriteString(schemas.Topic_DisplayName, *v.DisplayName)
+	}
+	if v.TopicName != nil {
+		s.WriteString(schemas.Topic_TopicName, *v.TopicName)
+	}
+}
+func (v *Topic) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Topic, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Topic_DefaultSubscriptionStatus:
+			var ev string
+			if err := d.ReadString(schemas.Topic_DefaultSubscriptionStatus, &ev); err != nil {
+				return err
+			}
+			v.DefaultSubscriptionStatus = SubscriptionStatus(ev)
+			return nil
+		case schemas.Topic_Description:
+			v.Description = new(string)
+			return d.ReadString(schemas.Topic_Description, v.Description)
+		case schemas.Topic_DisplayName:
+			v.DisplayName = new(string)
+			return d.ReadString(schemas.Topic_DisplayName, v.DisplayName)
+		case schemas.Topic_TopicName:
+			v.TopicName = new(string)
+			return d.ReadString(schemas.Topic_TopicName, v.TopicName)
+		}
+		return nil
+	})
+}
+
 // Used for filtering by a specific topic preference.
 type TopicFilter struct {
 
@@ -2236,6 +7143,33 @@ type TopicFilter struct {
 	UseDefaultIfPreferenceUnavailable bool
 
 	noSmithyDocumentSerde
+}
+
+func (v *TopicFilter) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TopicFilter)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TopicFilter) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.TopicName != nil {
+		s.WriteString(schemas.TopicFilter_TopicName, *v.TopicName)
+	}
+	if v.UseDefaultIfPreferenceUnavailable != false {
+		s.WriteBool(schemas.TopicFilter_UseDefaultIfPreferenceUnavailable, v.UseDefaultIfPreferenceUnavailable)
+	}
+}
+func (v *TopicFilter) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.TopicFilter, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.TopicFilter_TopicName:
+			v.TopicName = new(string)
+			return d.ReadString(schemas.TopicFilter_TopicName, v.TopicName)
+		case schemas.TopicFilter_UseDefaultIfPreferenceUnavailable:
+			return d.ReadBool(schemas.TopicFilter_UseDefaultIfPreferenceUnavailable, &v.UseDefaultIfPreferenceUnavailable)
+		}
+		return nil
+	})
 }
 
 // The contact's preference for being opted-in to or opted-out of a topic.
@@ -2252,6 +7186,130 @@ type TopicPreference struct {
 	TopicName *string
 
 	noSmithyDocumentSerde
+}
+
+func (v *TopicPreference) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TopicPreference)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TopicPreference) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SubscriptionStatus != "" {
+		s.WriteString(schemas.TopicPreference_SubscriptionStatus, string(v.SubscriptionStatus))
+	}
+	if v.TopicName != nil {
+		s.WriteString(schemas.TopicPreference_TopicName, *v.TopicName)
+	}
+}
+func (v *TopicPreference) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.TopicPreference, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.TopicPreference_SubscriptionStatus:
+			var ev string
+			if err := d.ReadString(schemas.TopicPreference_SubscriptionStatus, &ev); err != nil {
+				return err
+			}
+			v.SubscriptionStatus = SubscriptionStatus(ev)
+			return nil
+		case schemas.TopicPreference_TopicName:
+			v.TopicName = new(string)
+			return d.ReadString(schemas.TopicPreference_TopicName, v.TopicName)
+		}
+		return nil
+	})
+}
+
+// An object that overrides, for a single email sending request, the engagement
+// tracking settings that would otherwise apply. Use these overrides to turn open
+// tracking or click tracking on or off for an individual message, for example to
+// suppress tracking in a transactional message that you send from an account or a
+// configuration set that has tracking enabled.
+//
+// Without an override, engagement tracking is determined by your account-level
+// EngagementMetrics setting, which you configure using the PutAccountVdmAttributes
+// operation, by the EngagementMetrics setting of the configuration set that the
+// message uses, which you configure using the PutConfigurationSetVdmOptions
+// operation, and by whether that configuration set has an event destination whose
+// MatchingEventTypes include the OPEN or CLICK event types.
+//
+// For more information about tracking open and click events, see the [Amazon SES Developer Guide].
+//
+// [Amazon SES Developer Guide]: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/event-publishing.html
+type TrackingConfigurationOverrides struct {
+
+	// Specifies whether Amazon SES tracks when the recipient clicks a link in this
+	// message. Can be one of the following:
+	//
+	//   - ENABLED – Amazon SES tracks clicks for this message, even when your
+	//   account-level and configuration set settings don't enable click tracking.
+	//
+	//   - DISABLED – Amazon SES doesn't track clicks for this message, even when your
+	//   account-level or configuration set settings enable click tracking. Amazon SES
+	//   doesn't rewrite the links in the message.
+	//
+	// If you don't specify this value, Amazon SES uses the click tracking setting
+	// that would otherwise apply to the message.
+	//
+	// Enabling open or click tracking with an override doesn't create an event
+	// destination. Amazon SES records the resulting open and click events in VDM,
+	// where you can review them using VDM metrics and Message Insights. To also
+	// receive these events at a destination that you own, the configuration set that
+	// the message uses must have an event destination that publishes open and click
+	// events.
+	ClickTrackingEnabled FeatureStatus
+
+	// Specifies whether Amazon SES tracks when the recipient opens this message. Can
+	// be one of the following:
+	//
+	//   - ENABLED – Amazon SES tracks opens for this message, even when your
+	//   account-level and configuration set settings don't enable open tracking.
+	//
+	//   - DISABLED – Amazon SES doesn't track opens for this message, even when your
+	//   account-level or configuration set settings enable open tracking. Amazon SES
+	//   doesn't add the tracking image to the message.
+	//
+	// If you don't specify this value, Amazon SES uses the open tracking setting that
+	// would otherwise apply to the message.
+	OpenTrackingEnabled FeatureStatus
+
+	noSmithyDocumentSerde
+}
+
+func (v *TrackingConfigurationOverrides) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TrackingConfigurationOverrides)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TrackingConfigurationOverrides) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ClickTrackingEnabled != "" {
+		s.WriteString(schemas.TrackingConfigurationOverrides_ClickTrackingEnabled, string(v.ClickTrackingEnabled))
+	}
+	if v.OpenTrackingEnabled != "" {
+		s.WriteString(schemas.TrackingConfigurationOverrides_OpenTrackingEnabled, string(v.OpenTrackingEnabled))
+	}
+}
+func (v *TrackingConfigurationOverrides) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.TrackingConfigurationOverrides, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.TrackingConfigurationOverrides_ClickTrackingEnabled:
+			var ev string
+			if err := d.ReadString(schemas.TrackingConfigurationOverrides_ClickTrackingEnabled, &ev); err != nil {
+				return err
+			}
+			v.ClickTrackingEnabled = FeatureStatus(ev)
+			return nil
+		case schemas.TrackingConfigurationOverrides_OpenTrackingEnabled:
+			var ev string
+			if err := d.ReadString(schemas.TrackingConfigurationOverrides_OpenTrackingEnabled, &ev); err != nil {
+				return err
+			}
+			v.OpenTrackingEnabled = FeatureStatus(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // An object that defines the tracking options for a configuration set. When you
@@ -2274,6 +7332,38 @@ type TrackingOptions struct {
 	HttpsPolicy HttpsPolicy
 
 	noSmithyDocumentSerde
+}
+
+func (v *TrackingOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TrackingOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TrackingOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CustomRedirectDomain != nil {
+		s.WriteString(schemas.TrackingOptions_CustomRedirectDomain, *v.CustomRedirectDomain)
+	}
+	if v.HttpsPolicy != "" {
+		s.WriteString(schemas.TrackingOptions_HttpsPolicy, string(v.HttpsPolicy))
+	}
+}
+func (v *TrackingOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.TrackingOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.TrackingOptions_CustomRedirectDomain:
+			v.CustomRedirectDomain = new(string)
+			return d.ReadString(schemas.TrackingOptions_CustomRedirectDomain, v.CustomRedirectDomain)
+		case schemas.TrackingOptions_HttpsPolicy:
+			var ev string
+			if err := d.ReadString(schemas.TrackingOptions_HttpsPolicy, &ev); err != nil {
+				return err
+			}
+			v.HttpsPolicy = HttpsPolicy(ev)
+			return nil
+		}
+		return nil
+	})
 }
 
 // The VDM attributes that apply to your Amazon SES account.
@@ -2299,6 +7389,48 @@ type VdmAttributes struct {
 	noSmithyDocumentSerde
 }
 
+func (v *VdmAttributes) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.VdmAttributes)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *VdmAttributes) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DashboardAttributes != nil {
+		s.WriteStruct(schemas.VdmAttributes_DashboardAttributes)
+		v.DashboardAttributes.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.GuardianAttributes != nil {
+		s.WriteStruct(schemas.VdmAttributes_GuardianAttributes)
+		v.GuardianAttributes.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.VdmEnabled != "" {
+		s.WriteString(schemas.VdmAttributes_VdmEnabled, string(v.VdmEnabled))
+	}
+}
+func (v *VdmAttributes) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.VdmAttributes, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.VdmAttributes_DashboardAttributes:
+			v.DashboardAttributes = &DashboardAttributes{}
+			return v.DashboardAttributes.Deserialize(d)
+		case schemas.VdmAttributes_GuardianAttributes:
+			v.GuardianAttributes = &GuardianAttributes{}
+			return v.GuardianAttributes.Deserialize(d)
+		case schemas.VdmAttributes_VdmEnabled:
+			var ev string
+			if err := d.ReadString(schemas.VdmAttributes_VdmEnabled, &ev); err != nil {
+				return err
+			}
+			v.VdmEnabled = FeatureStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
+
 // An object that defines the VDM settings that apply to emails that you send
 // using the configuration set.
 type VdmOptions struct {
@@ -2312,6 +7444,38 @@ type VdmOptions struct {
 	GuardianOptions *GuardianOptions
 
 	noSmithyDocumentSerde
+}
+
+func (v *VdmOptions) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.VdmOptions)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *VdmOptions) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DashboardOptions != nil {
+		s.WriteStruct(schemas.VdmOptions_DashboardOptions)
+		v.DashboardOptions.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.GuardianOptions != nil {
+		s.WriteStruct(schemas.VdmOptions_GuardianOptions)
+		v.GuardianOptions.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *VdmOptions) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.VdmOptions, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.VdmOptions_DashboardOptions:
+			v.DashboardOptions = &DashboardOptions{}
+			return v.DashboardOptions.Deserialize(d)
+		case schemas.VdmOptions_GuardianOptions:
+			v.GuardianOptions = &GuardianOptions{}
+			return v.GuardianOptions.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An object that contains additional information about the verification status
@@ -2338,6 +7502,29 @@ type VerificationInfo struct {
 	//
 	//   - DNS_SERVER_ERROR – The DNS server encountered an issue and was unable to
 	//   complete the request.
+	//
+	//   - REPLICATION_ACCESS_DENIED – The verification failed because the user does
+	//   not have the required permissions to replicate the DKIM key from the primary
+	//   region. Ensure you have the necessary permissions in both primary and replica
+	//   regions.
+	//
+	//   - REPLICATION_PRIMARY_NOT_FOUND – The verification failed because no
+	//   corresponding identity was found in the specified primary region. Ensure the
+	//   identity exists in the primary region before attempting replication.
+	//
+	//   - REPLICATION_PRIMARY_BYO_DKIM_NOT_SUPPORTED – The verification failed because
+	//   the identity in the primary region is configured with Bring Your Own DKIM
+	//   (BYODKIM). DKIM key replication is only supported for identities using Easy
+	//   DKIM.
+	//
+	//   - REPLICATION_REPLICA_AS_PRIMARY_NOT_SUPPORTED – The verification failed
+	//   because the specified primary identity is a replica of another identity, and
+	//   multi-level replication is not supported; the primary identity must be a
+	//   non-replica identity.
+	//
+	//   - REPLICATION_PRIMARY_INVALID_REGION – The verification failed due to an
+	//   invalid primary region specified. Ensure you provide a valid Amazon Web Services
+	//   region where Amazon SES is available and different from the replica region.
 	ErrorType VerificationError
 
 	// The last time a verification attempt was made for this identity.
@@ -2351,6 +7538,52 @@ type VerificationInfo struct {
 	SOARecord *SOARecord
 
 	noSmithyDocumentSerde
+}
+
+func (v *VerificationInfo) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.VerificationInfo)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *VerificationInfo) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ErrorType != "" {
+		s.WriteString(schemas.VerificationInfo_ErrorType, string(v.ErrorType))
+	}
+	if v.LastCheckedTimestamp != nil {
+		s.WriteTime(schemas.VerificationInfo_LastCheckedTimestamp, *v.LastCheckedTimestamp)
+	}
+	if v.LastSuccessTimestamp != nil {
+		s.WriteTime(schemas.VerificationInfo_LastSuccessTimestamp, *v.LastSuccessTimestamp)
+	}
+	if v.SOARecord != nil {
+		s.WriteStruct(schemas.VerificationInfo_SOARecord)
+		v.SOARecord.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *VerificationInfo) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.VerificationInfo, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.VerificationInfo_ErrorType:
+			var ev string
+			if err := d.ReadString(schemas.VerificationInfo_ErrorType, &ev); err != nil {
+				return err
+			}
+			v.ErrorType = VerificationError(ev)
+			return nil
+		case schemas.VerificationInfo_LastCheckedTimestamp:
+			v.LastCheckedTimestamp = new(time.Time)
+			return d.ReadTime(schemas.VerificationInfo_LastCheckedTimestamp, v.LastCheckedTimestamp)
+		case schemas.VerificationInfo_LastSuccessTimestamp:
+			v.LastSuccessTimestamp = new(time.Time)
+			return d.ReadTime(schemas.VerificationInfo_LastSuccessTimestamp, v.LastSuccessTimestamp)
+		case schemas.VerificationInfo_SOARecord:
+			v.SOARecord = &SOARecord{}
+			return v.SOARecord.Deserialize(d)
+		}
+		return nil
+	})
 }
 
 // An object that contains information about the amount of email that was
@@ -2375,4 +7608,55 @@ type VolumeStatistics struct {
 	noSmithyDocumentSerde
 }
 
+func (v *VolumeStatistics) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.VolumeStatistics)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *VolumeStatistics) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.InboxRawCount != nil {
+		s.WriteInt64(schemas.VolumeStatistics_InboxRawCount, *v.InboxRawCount)
+	}
+	if v.ProjectedInbox != nil {
+		s.WriteInt64(schemas.VolumeStatistics_ProjectedInbox, *v.ProjectedInbox)
+	}
+	if v.ProjectedSpam != nil {
+		s.WriteInt64(schemas.VolumeStatistics_ProjectedSpam, *v.ProjectedSpam)
+	}
+	if v.SpamRawCount != nil {
+		s.WriteInt64(schemas.VolumeStatistics_SpamRawCount, *v.SpamRawCount)
+	}
+}
+func (v *VolumeStatistics) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.VolumeStatistics, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.VolumeStatistics_InboxRawCount:
+			v.InboxRawCount = new(int64)
+			return d.ReadInt64(schemas.VolumeStatistics_InboxRawCount, v.InboxRawCount)
+		case schemas.VolumeStatistics_ProjectedInbox:
+			v.ProjectedInbox = new(int64)
+			return d.ReadInt64(schemas.VolumeStatistics_ProjectedInbox, v.ProjectedInbox)
+		case schemas.VolumeStatistics_ProjectedSpam:
+			v.ProjectedSpam = new(int64)
+			return d.ReadInt64(schemas.VolumeStatistics_ProjectedSpam, v.ProjectedSpam)
+		case schemas.VolumeStatistics_SpamRawCount:
+			v.SpamRawCount = new(int64)
+			return d.ReadInt64(schemas.VolumeStatistics_SpamRawCount, v.SpamRawCount)
+		}
+		return nil
+	})
+}
+
 type noSmithyDocumentSerde = smithydocument.NoSerde
+
+// UnknownUnionMember is returned when a union member is returned over the wire,
+// but has an unknown tag.
+type UnknownUnionMember struct {
+	Tag   string
+	Value []byte
+
+	noSmithyDocumentSerde
+}
+
+func (*UnknownUnionMember) isSigningScheme() {}

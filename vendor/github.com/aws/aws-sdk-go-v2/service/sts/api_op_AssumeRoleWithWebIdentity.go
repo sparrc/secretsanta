@@ -4,11 +4,10 @@ package sts
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/service/sts/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/sts/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns a set of temporary security credentials for users who have been
@@ -31,7 +30,7 @@ import (
 // Services credentials. Instead, the identity of the caller is validated by using
 // a token from the web identity provider. For a comparison of
 // AssumeRoleWithWebIdentity with the other API operations that produce temporary
-// credentials, see [Requesting Temporary Security Credentials]and [Comparing the Amazon Web Services STS API operations] in the IAM User Guide.
+// credentials, see [Requesting Temporary Security Credentials]and [Compare STS credentials] in the IAM User Guide.
 //
 // The temporary security credentials returned by this API consist of an access
 // key ID, a secret access key, and a security token. Applications can use these
@@ -45,7 +44,7 @@ import (
 // DurationSeconds parameter to specify the duration of your session. You can
 // provide a value from 900 seconds (15 minutes) up to the maximum session duration
 // setting for the role. This setting can have a value from 1 hour to 12 hours. To
-// learn how to view the maximum value for your role, see [View the Maximum Session Duration Setting for a Role]in the IAM User Guide.
+// learn how to view the maximum value for your role, see [Update the maximum session duration for a role]in the IAM User Guide.
 // The maximum session duration limit applies when you use the AssumeRole* API
 // operations or the assume-role* CLI commands. However the limit does not apply
 // when you use those operations to create a console URL. For more information, see
@@ -75,18 +74,11 @@ import (
 //
 // (Optional) You can configure your IdP to pass attributes into your web identity
 // token as session tags. Each session tag consists of a key name and an associated
-// value. For more information about session tags, see [Passing Session Tags in STS]in the IAM User Guide.
+// value. For more information about session tags, see [Passing session tags using AssumeRoleWithWebIdentity]in the IAM User Guide.
 //
 // You can pass up to 50 session tags. The plaintext session tag keys can’t exceed
 // 128 characters and the values can’t exceed 256 characters. For these and
 // additional limits, see [IAM and STS Character Limits]in the IAM User Guide.
-//
-// An Amazon Web Services conversion compresses the passed inline session policy,
-// managed policy ARNs, and session tags into a packed binary format that has a
-// separate limit. Your request can fail for this limit even if your plaintext
-// meets the other requirements. The PackedPolicySize response element indicates
-// by percentage how close the policies and tags for your request are to the upper
-// size limit.
 //
 // You can pass a session tag with the same key as a tag that is attached to the
 // role. When you do, the session tag overrides the role tag with the same key.
@@ -111,34 +103,24 @@ import (
 // that you avoid using any personally identifiable information (PII) in this
 // field. For example, you could instead use a GUID or a pairwise identifier, as [suggested in the OIDC specification].
 //
-// For more information about how to use web identity federation and the
+// For more information about how to use OIDC federation and the
 // AssumeRoleWithWebIdentity API, see the following resources:
 //
 // [Using Web Identity Federation API Operations for Mobile Apps]
 //   - and [Federation Through a Web-based Identity Provider].
-//
-// [Web Identity Federation Playground]
-//   - . Walk through the process of authenticating through Login with Amazon,
-//     Facebook, or Google, getting temporary security credentials, and then using
-//     those credentials to make a request to Amazon Web Services.
 //
 // [Amazon Web Services SDK for iOS Developer Guide]
 //   - and [Amazon Web Services SDK for Android Developer Guide]. These toolkits contain sample apps that show how to invoke the
 //     identity providers. The toolkits then show how to use the information from these
 //     providers to get and use temporary security credentials.
 //
-// [Web Identity Federation with Mobile Applications]
-//   - . This article discusses web identity federation and shows an example of
-//     how to use web identity federation to get access to content in Amazon S3.
-//
 // [Amazon Web Services SDK for iOS Developer Guide]: http://aws.amazon.com/sdkforios/
-// [View the Maximum Session Duration Setting for a Role]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session
-// [Web Identity Federation Playground]: https://aws.amazon.com/blogs/aws/the-aws-web-identity-federation-playground/
+// [Passing session tags using AssumeRoleWithWebIdentity]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html#id_session-tags_adding-assume-role-idp
 // [Amazon Web Services SDK for Android Developer Guide]: http://aws.amazon.com/sdkforandroid/
 // [IAM and STS Character Limits]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-limits.html#reference_iam-limits-entity-length
-// [Comparing the Amazon Web Services STS API operations]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html#stsapi_comparison
 // [session policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
 // [Requesting Temporary Security Credentials]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html
+// [Compare STS credentials]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_sts-comparison.html
 // [Subject]: http://openid.net/specs/openid-connect-core-1_0.html#Claims
 // [Tutorial: Using Tags for Attribute-Based Access Control]: https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_attribute-based-access-control.html
 // [Amazon Cognito identity pools]: https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-identity.html
@@ -146,9 +128,8 @@ import (
 // [Using IAM Roles]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html
 // [Session Policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
 // [Amazon Cognito federated identities]: https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-identity.html
-// [Passing Session Tags in STS]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html
 // [Chaining Roles with Session Tags]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_session-tags.html#id_session-tags_role-chaining
-// [Web Identity Federation with Mobile Applications]: http://aws.amazon.com/articles/web-identity-federation-with-mobile-applications
+// [Update the maximum session duration for a role]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_update-role-settings.html#id_roles_update-session-duration
 // [Using Web Identity Federation API Operations for Mobile Apps]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc_manual.html
 // [suggested in the OIDC specification]: http://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 func (c *Client) AssumeRoleWithWebIdentity(ctx context.Context, params *AssumeRoleWithWebIdentityInput, optFns ...func(*Options)) (*AssumeRoleWithWebIdentityOutput, error) {
@@ -170,6 +151,17 @@ type AssumeRoleWithWebIdentityInput struct {
 
 	// The Amazon Resource Name (ARN) of the role that the caller is assuming.
 	//
+	// Additional considerations apply to Amazon Cognito identity pools that assume [cross-account IAM roles].
+	// The trust policies of these roles must accept the cognito-identity.amazonaws.com
+	// service principal and must contain the cognito-identity.amazonaws.com:aud
+	// condition key to restrict role assumption to users from your intended identity
+	// pools. A policy that trusts Amazon Cognito identity pools without this condition
+	// creates a risk that a user from an unintended identity pool can assume the role.
+	// For more information, see [Trust policies for IAM roles in Basic (Classic) authentication]in the Amazon Cognito Developer Guide.
+	//
+	// [cross-account IAM roles]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-cross-account-resource-access.html
+	// [Trust policies for IAM roles in Basic (Classic) authentication]: https://docs.aws.amazon.com/cognito/latest/developerguide/iam-roles.html#trust-policies
+	//
 	// This member is required.
 	RoleArn *string
 
@@ -179,9 +171,17 @@ type AssumeRoleWithWebIdentityInput struct {
 	// associated with that user. This session name is included as part of the ARN and
 	// assumed role ID in the AssumedRoleUser response element.
 	//
+	// For security purposes, administrators can view this field in [CloudTrail logs] to help identify
+	// who performed an action in Amazon Web Services. Your administrator might require
+	// that you specify your user name as the session name when you assume the role.
+	// For more information, see [sts:RoleSessionName]sts:RoleSessionName .
+	//
 	// The regex used to validate this parameter is a string of characters consisting
 	// of upper- and lower-case alphanumeric characters with no spaces. You can also
 	// include underscores or any of the following characters: =,.@-
+	//
+	// [CloudTrail logs]: https://docs.aws.amazon.com/IAM/latest/UserGuide/cloudtrail-integration.html#cloudtrail-integration_signin-tempcreds
+	// [sts:RoleSessionName]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_iam-condition-keys.html#ck_rolesessionname
 	//
 	// This member is required.
 	RoleSessionName *string
@@ -189,8 +189,10 @@ type AssumeRoleWithWebIdentityInput struct {
 	// The OAuth 2.0 access token or OpenID Connect ID token that is provided by the
 	// identity provider. Your application must get this token by authenticating the
 	// user who is using your application with a web identity provider before the
-	// application makes an AssumeRoleWithWebIdentity call. Only tokens with RSA
-	// algorithms (RS256) are supported.
+	// application makes an AssumeRoleWithWebIdentity call. Timestamps in the token
+	// must be formatted as either an integer or a long integer. Tokens must be signed
+	// using either RSA keys (RS256, RS384, or RS512) or ECDSA keys (ES256, ES384, or
+	// ES512).
 	//
 	// This member is required.
 	WebIdentityToken *string
@@ -215,6 +217,12 @@ type AssumeRoleWithWebIdentityInput struct {
 	// [Creating a URL that Enables Federated Users to Access the Amazon Web Services Management Console]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-custom-url.html
 	DurationSeconds *int32
 
+	// The minimum size, in bytes, of the session token that STS issues for the
+	// request. STS increases the session token to at least this size, regardless of
+	// its actual content. The value must not exceed 4,096 bytes. When set to 0 or not
+	// specified, the session token size is unchanged.
+	MinimumSessionTokenSize *int32
+
 	// An IAM policy in JSON format that you want to use as an inline session policy.
 	//
 	// This parameter is optional. Passing policies to this operation returns new
@@ -232,14 +240,10 @@ type AssumeRoleWithWebIdentityInput struct {
 	// \u00FF). It can also include the tab (\u0009), linefeed (\u000A), and carriage
 	// return (\u000D) characters.
 	//
-	// An Amazon Web Services conversion compresses the passed inline session policy,
-	// managed policy ARNs, and session tags into a packed binary format that has a
-	// separate limit. Your request can fail for this limit even if your plaintext
-	// meets the other requirements. The PackedPolicySize response element indicates
-	// by percentage how close the policies and tags for your request are to the upper
-	// size limit.
+	// For more information about role session permissions, see [Session policies].
 	//
 	// [Session Policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
+	// [Session policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
 	Policy *string
 
 	// The Amazon Resource Names (ARNs) of the IAM managed policies that you want to
@@ -250,13 +254,6 @@ type AssumeRoleWithWebIdentityInput struct {
 	// However, the plaintext that you use for both inline and managed session policies
 	// can't exceed 2,048 characters. For more information about ARNs, see [Amazon Resource Names (ARNs) and Amazon Web Services Service Namespaces]in the
 	// Amazon Web Services General Reference.
-	//
-	// An Amazon Web Services conversion compresses the passed inline session policy,
-	// managed policy ARNs, and session tags into a packed binary format that has a
-	// separate limit. Your request can fail for this limit even if your plaintext
-	// meets the other requirements. The PackedPolicySize response element indicates
-	// by percentage how close the policies and tags for your request are to the upper
-	// size limit.
 	//
 	// Passing policies to this operation returns new temporary credentials. The
 	// resulting session's permissions are the intersection of the role's
@@ -283,6 +280,39 @@ type AssumeRoleWithWebIdentityInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *AssumeRoleWithWebIdentityInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.AssumeRoleWithWebIdentityRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *AssumeRoleWithWebIdentityInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DurationSeconds != nil {
+		s.WriteInt32(schemas.AssumeRoleWithWebIdentityRequest_DurationSeconds, *v.DurationSeconds)
+	}
+	if v.MinimumSessionTokenSize != nil {
+		s.WriteInt32(schemas.AssumeRoleWithWebIdentityRequest_MinimumSessionTokenSize, *v.MinimumSessionTokenSize)
+	}
+	if v.Policy != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityRequest_Policy, *v.Policy)
+	}
+	if v.PolicyArns != nil {
+		serializepolicyDescriptorListType(s, schemas.AssumeRoleWithWebIdentityRequest_PolicyArns, v.PolicyArns)
+	}
+	if v.ProviderId != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityRequest_ProviderId, *v.ProviderId)
+	}
+	if v.RoleArn != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityRequest_RoleArn, *v.RoleArn)
+	}
+	if v.RoleSessionName != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityRequest_RoleSessionName, *v.RoleSessionName)
+	}
+	if v.WebIdentityToken != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityRequest_WebIdentityToken, *v.WebIdentityToken)
+	}
+}
+
 // Contains the response to a successful AssumeRoleWithWebIdentity request, including temporary Amazon Web
 // Services credentials that can be used to make Amazon Web Services requests.
 type AssumeRoleWithWebIdentityOutput struct {
@@ -306,10 +336,12 @@ type AssumeRoleWithWebIdentityOutput struct {
 	// strongly recommend that you make no assumptions about the maximum size.
 	Credentials *types.Credentials
 
-	// A percentage value that indicates the packed size of the session policies and
-	// session tags combined passed in the request. The request fails if the packed
-	// size is greater than 100 percent, which means the policies and tags exceeded the
-	// allowed space.
+	// The percentage (0-100) of the maximum allowed session token size that the
+	// returned session token consumes.
+	//
+	// This field is deprecated. Use SessionTokenUtilization instead.
+	//
+	// Deprecated: Deprecated. Replaced by SessionTokenUtilization.
 	PackedPolicySize *int32
 
 	//  The issuing authority of the web identity token presented. For OpenID Connect
@@ -317,6 +349,14 @@ type AssumeRoleWithWebIdentityOutput struct {
 	// tokens, this contains the value of the ProviderId parameter that was passed in
 	// the AssumeRoleWithWebIdentity request.
 	Provider *string
+
+	// The size, in bytes, of the session token returned in the Credentials for this
+	// response.
+	SessionTokenSize *int32
+
+	// The percentage (0-100) of the maximum allowed session token size that the
+	// returned session token consumes.
+	SessionTokenUtilization *int32
 
 	// The value of the source identity that is returned in the JSON web token (JWT)
 	// from the identity provider.
@@ -337,7 +377,7 @@ type AssumeRoleWithWebIdentityOutput struct {
 	// of upper- and lower-case alphanumeric characters with no spaces. You can also
 	// include underscores or any of the following characters: =,.@-
 	//
-	// [chained role]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_terms-and-concepts#iam-term-role-chaining
+	// [chained role]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html#id_roles_terms-and-concepts
 	// [Monitor and control actions taken with assumed roles]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_control-access_monitor.html
 	// [Using Tokens with User Pools]: https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-with-identity-providers.html
 	SourceIdentity *string
@@ -350,80 +390,125 @@ type AssumeRoleWithWebIdentityOutput struct {
 	// identity provider as the token's sub (Subject) claim.
 	SubjectFromWebIdentityToken *string
 
+	// The trusted identity propagation context that Amazon Web Services STS set in
+	// the session from the web identity token, through the context provider attached
+	// to the OpenID Connect identity provider. It is present only when Amazon Web
+	// Services STS set such context in the session. It contains the
+	// aws:OriginIdentity/Subject , aws:OriginIdentity/SubjectType ,
+	// aws:OriginIdentity/Issuer and aws:OriginIdentity/FederatedProviderArn keys and
+	// the aws:TransactionContext/IdentityProvider/* keys that Amazon Web Services STS
+	// set in the session. Other keys in the session, such as
+	// aws:IdentityCenterInstanceArn and aws:IdentityStoreArn for an identity provider
+	// with an Identity Center instance attached, are not returned.
+	//
+	// This element contains information about the end user. Do not log it.
+	TrustedIdentityPropagationContext *types.TrustedIdentityPropagationContext
+
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
 
 	noSmithyDocumentSerde
 }
 
+func (v *AssumeRoleWithWebIdentityOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.AssumeRoleWithWebIdentityResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *AssumeRoleWithWebIdentityOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AssumedRoleUser != nil {
+		s.WriteStruct(schemas.AssumeRoleWithWebIdentityResponse_AssumedRoleUser)
+		v.AssumedRoleUser.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Audience != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityResponse_Audience, *v.Audience)
+	}
+	if v.Credentials != nil {
+		s.WriteStruct(schemas.AssumeRoleWithWebIdentityResponse_Credentials)
+		v.Credentials.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.PackedPolicySize != nil {
+		s.WriteInt32(schemas.AssumeRoleWithWebIdentityResponse_PackedPolicySize, *v.PackedPolicySize)
+	}
+	if v.Provider != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityResponse_Provider, *v.Provider)
+	}
+	if v.SessionTokenSize != nil {
+		s.WriteInt32(schemas.AssumeRoleWithWebIdentityResponse_SessionTokenSize, *v.SessionTokenSize)
+	}
+	if v.SessionTokenUtilization != nil {
+		s.WriteInt32(schemas.AssumeRoleWithWebIdentityResponse_SessionTokenUtilization, *v.SessionTokenUtilization)
+	}
+	if v.SourceIdentity != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityResponse_SourceIdentity, *v.SourceIdentity)
+	}
+	if v.SubjectFromWebIdentityToken != nil {
+		s.WriteString(schemas.AssumeRoleWithWebIdentityResponse_SubjectFromWebIdentityToken, *v.SubjectFromWebIdentityToken)
+	}
+	if v.TrustedIdentityPropagationContext != nil {
+		s.WriteStruct(schemas.AssumeRoleWithWebIdentityResponse_TrustedIdentityPropagationContext)
+		v.TrustedIdentityPropagationContext.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *AssumeRoleWithWebIdentityOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.AssumeRoleWithWebIdentityResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.AssumeRoleWithWebIdentityResponse_AssumedRoleUser:
+			v.AssumedRoleUser = &types.AssumedRoleUser{}
+			return v.AssumedRoleUser.Deserialize(d)
+		case schemas.AssumeRoleWithWebIdentityResponse_Audience:
+			v.Audience = new(string)
+			return d.ReadString(schemas.AssumeRoleWithWebIdentityResponse_Audience, v.Audience)
+		case schemas.AssumeRoleWithWebIdentityResponse_Credentials:
+			v.Credentials = &types.Credentials{}
+			return v.Credentials.Deserialize(d)
+		case schemas.AssumeRoleWithWebIdentityResponse_PackedPolicySize:
+			v.PackedPolicySize = new(int32)
+			return d.ReadInt32(schemas.AssumeRoleWithWebIdentityResponse_PackedPolicySize, v.PackedPolicySize)
+		case schemas.AssumeRoleWithWebIdentityResponse_Provider:
+			v.Provider = new(string)
+			return d.ReadString(schemas.AssumeRoleWithWebIdentityResponse_Provider, v.Provider)
+		case schemas.AssumeRoleWithWebIdentityResponse_SessionTokenSize:
+			v.SessionTokenSize = new(int32)
+			return d.ReadInt32(schemas.AssumeRoleWithWebIdentityResponse_SessionTokenSize, v.SessionTokenSize)
+		case schemas.AssumeRoleWithWebIdentityResponse_SessionTokenUtilization:
+			v.SessionTokenUtilization = new(int32)
+			return d.ReadInt32(schemas.AssumeRoleWithWebIdentityResponse_SessionTokenUtilization, v.SessionTokenUtilization)
+		case schemas.AssumeRoleWithWebIdentityResponse_SourceIdentity:
+			v.SourceIdentity = new(string)
+			return d.ReadString(schemas.AssumeRoleWithWebIdentityResponse_SourceIdentity, v.SourceIdentity)
+		case schemas.AssumeRoleWithWebIdentityResponse_SubjectFromWebIdentityToken:
+			v.SubjectFromWebIdentityToken = new(string)
+			return d.ReadString(schemas.AssumeRoleWithWebIdentityResponse_SubjectFromWebIdentityToken, v.SubjectFromWebIdentityToken)
+		case schemas.AssumeRoleWithWebIdentityResponse_TrustedIdentityPropagationContext:
+			v.TrustedIdentityPropagationContext = &types.TrustedIdentityPropagationContext{}
+			return v.TrustedIdentityPropagationContext.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationAssumeRoleWithWebIdentityMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.AssumeRoleWithWebIdentity, schemas.AssumeRoleWithWebIdentityRequest, schemas.AssumeRoleWithWebIdentityResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Serialize.Add(&awsAwsquery_serializeOpAssumeRoleWithWebIdentity{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.AssumeRoleWithWebIdentity, schemas.AssumeRoleWithWebIdentityRequest, schemas.AssumeRoleWithWebIdentityResponse), output: &AssumeRoleWithWebIdentityOutput{}}, middleware.After); err != nil {
 		return err
-	}
-	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpAssumeRoleWithWebIdentity{}, middleware.After)
-	if err != nil {
-		return err
-	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "AssumeRoleWithWebIdentity"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
+	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
-	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpAssumeRoleWithWebIdentityValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opAssumeRoleWithWebIdentity(options.Region), middleware.Before); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -438,25 +523,8 @@ func (c *Client) addOperationAssumeRoleWithWebIdentityMiddlewares(stack *middlew
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newServiceMetadataMiddleware_opAssumeRoleWithWebIdentity(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "AssumeRoleWithWebIdentity",
-	}
 }

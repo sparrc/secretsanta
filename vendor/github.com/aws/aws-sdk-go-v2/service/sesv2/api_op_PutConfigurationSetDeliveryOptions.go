@@ -4,11 +4,10 @@ package sesv2
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/service/sesv2/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Associate a configuration set with a dedicated IP pool. You can use dedicated
@@ -45,14 +44,56 @@ type PutConfigurationSetDeliveryOptionsInput struct {
 	// The name of the dedicated IP pool to associate with the configuration set.
 	SendingPoolName *string
 
+	// The shared pool delivery mode for email that you send with the configuration
+	// set from shared IP addresses. This setting overrides the shared pool delivery
+	// mode of your account. Can be one of the following:
+	//
+	//   - GLOBAL – Amazon SES delivers from your sending Region first and, when it
+	//   improves your deliverability, also uses Amazon SES shared IP addresses with
+	//   established sending history in other Amazon Web Services Regions within the same
+	//   Amazon Web Services partition.
+	//
+	//   - REGIONAL – Amazon SES delivers your email only from shared IP addresses in
+	//   your sending Region.
+	//
+	//   - ACCOUNT – The configuration set uses the shared pool delivery mode of your
+	//   account.
+	//
+	// If you don't specify a value, the current value doesn't change.
+	SharedPoolDeliveryMode types.SharedPoolDeliveryMode
+
 	// Specifies whether messages that use the configuration set are required to use
-	// Transport Layer Security (TLS). If the value is Require , messages are only
-	// delivered if a TLS connection can be established. If the value is Optional ,
+	// Transport Layer Security (TLS). If the value is REQUIRE , messages are only
+	// delivered if a TLS connection can be established. If the value is OPTIONAL ,
 	// messages can be delivered in plain text if a TLS connection can't be
 	// established.
 	TlsPolicy types.TlsPolicy
 
 	noSmithyDocumentSerde
+}
+
+func (v *PutConfigurationSetDeliveryOptionsInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutConfigurationSetDeliveryOptionsRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutConfigurationSetDeliveryOptionsInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ConfigurationSetName != nil {
+		s.WriteString(schemas.PutConfigurationSetDeliveryOptionsRequest_ConfigurationSetName, *v.ConfigurationSetName)
+	}
+	if v.MaxDeliverySeconds != nil {
+		s.WriteInt64(schemas.PutConfigurationSetDeliveryOptionsRequest_MaxDeliverySeconds, *v.MaxDeliverySeconds)
+	}
+	if v.SendingPoolName != nil {
+		s.WriteString(schemas.PutConfigurationSetDeliveryOptionsRequest_SendingPoolName, *v.SendingPoolName)
+	}
+	if v.SharedPoolDeliveryMode != "" {
+		s.WriteString(schemas.PutConfigurationSetDeliveryOptionsRequest_SharedPoolDeliveryMode, string(v.SharedPoolDeliveryMode))
+	}
+	if v.TlsPolicy != "" {
+		s.WriteString(schemas.PutConfigurationSetDeliveryOptionsRequest_TlsPolicy, string(v.TlsPolicy))
+	}
 }
 
 // An HTTP 200 response if the request succeeds, or an error message if the
@@ -64,77 +105,42 @@ type PutConfigurationSetDeliveryOptionsOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutConfigurationSetDeliveryOptionsOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutConfigurationSetDeliveryOptionsResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutConfigurationSetDeliveryOptionsOutput) SerializeMembers(s smithy.ShapeSerializer) {
+}
+func (v *PutConfigurationSetDeliveryOptionsOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutConfigurationSetDeliveryOptionsResponse, func(s *smithy.Schema) error {
+		switch s {
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutConfigurationSetDeliveryOptionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutConfigurationSetDeliveryOptions, schemas.PutConfigurationSetDeliveryOptionsRequest, schemas.PutConfigurationSetDeliveryOptionsResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpPutConfigurationSetDeliveryOptions{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutConfigurationSetDeliveryOptions, schemas.PutConfigurationSetDeliveryOptionsRequest, schemas.PutConfigurationSetDeliveryOptionsResponse), output: &PutConfigurationSetDeliveryOptionsOutput{}}, middleware.After); err != nil {
 		return err
-	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpPutConfigurationSetDeliveryOptions{}, middleware.After)
-	if err != nil {
-		return err
-	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "PutConfigurationSetDeliveryOptions"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
+	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
-	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutConfigurationSetDeliveryOptionsValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPutConfigurationSetDeliveryOptions(options.Region), middleware.Before); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -149,25 +155,8 @@ func (c *Client) addOperationPutConfigurationSetDeliveryOptionsMiddlewares(stack
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newServiceMetadataMiddleware_opPutConfigurationSetDeliveryOptions(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "PutConfigurationSetDeliveryOptions",
-	}
 }

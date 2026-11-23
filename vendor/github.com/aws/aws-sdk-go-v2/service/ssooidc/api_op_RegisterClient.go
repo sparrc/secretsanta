@@ -4,15 +4,14 @@ package ssooidc
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/service/ssooidc/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Registers a client with IAM Identity Center. This allows clients to initiate
-// device authorization. The output should be persisted for reuse through many
-// authentication requests.
+// Registers a public client with IAM Identity Center. This allows clients to
+// perform authorization using the authorization code grant with Proof Key for Code
+// Exchange (PKCE) or the device code grant.
 func (c *Client) RegisterClient(ctx context.Context, params *RegisterClientInput, optFns ...func(*Options)) (*RegisterClientOutput, error) {
 	if params == nil {
 		params = &RegisterClientInput{}
@@ -48,7 +47,15 @@ type RegisterClientInput struct {
 	EntitledApplicationArn *string
 
 	// The list of OAuth 2.0 grant types that are defined by the client. This list is
-	// used to restrict the token granting flows available to the client.
+	// used to restrict the token granting flows available to the client. Supports the
+	// following OAuth 2.0 grant types: Authorization Code, Device Code, and Refresh
+	// Token.
+	//
+	// * Authorization Code - authorization_code
+	//
+	// * Device Code - urn:ietf:params:oauth:grant-type:device_code
+	//
+	// * Refresh Token - refresh_token
 	GrantTypes []string
 
 	// The IAM Identity Center Issuer URL associated with an instance of IAM Identity
@@ -65,6 +72,36 @@ type RegisterClientInput struct {
 	Scopes []string
 
 	noSmithyDocumentSerde
+}
+
+func (v *RegisterClientInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.RegisterClientRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *RegisterClientInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ClientName != nil {
+		s.WriteString(schemas.RegisterClientRequest_clientName, *v.ClientName)
+	}
+	if v.ClientType != nil {
+		s.WriteString(schemas.RegisterClientRequest_clientType, *v.ClientType)
+	}
+	if v.EntitledApplicationArn != nil {
+		s.WriteString(schemas.RegisterClientRequest_entitledApplicationArn, *v.EntitledApplicationArn)
+	}
+	if v.GrantTypes != nil {
+		serializeGrantTypes(s, schemas.RegisterClientRequest_grantTypes, v.GrantTypes)
+	}
+	if v.IssuerUrl != nil {
+		s.WriteString(schemas.RegisterClientRequest_issuerUrl, *v.IssuerUrl)
+	}
+	if v.RedirectUris != nil {
+		serializeRedirectUris(s, schemas.RegisterClientRequest_redirectUris, v.RedirectUris)
+	}
+	if v.Scopes != nil {
+		serializeScopes(s, schemas.RegisterClientRequest_scopes, v.Scopes)
+	}
 }
 
 type RegisterClientOutput struct {
@@ -95,74 +132,73 @@ type RegisterClientOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *RegisterClientOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.RegisterClientResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *RegisterClientOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AuthorizationEndpoint != nil {
+		s.WriteString(schemas.RegisterClientResponse_authorizationEndpoint, *v.AuthorizationEndpoint)
+	}
+	if v.ClientId != nil {
+		s.WriteString(schemas.RegisterClientResponse_clientId, *v.ClientId)
+	}
+	if v.ClientIdIssuedAt != 0 {
+		s.WriteInt64(schemas.RegisterClientResponse_clientIdIssuedAt, v.ClientIdIssuedAt)
+	}
+	if v.ClientSecret != nil {
+		s.WriteString(schemas.RegisterClientResponse_clientSecret, *v.ClientSecret)
+	}
+	if v.ClientSecretExpiresAt != 0 {
+		s.WriteInt64(schemas.RegisterClientResponse_clientSecretExpiresAt, v.ClientSecretExpiresAt)
+	}
+	if v.TokenEndpoint != nil {
+		s.WriteString(schemas.RegisterClientResponse_tokenEndpoint, *v.TokenEndpoint)
+	}
+}
+func (v *RegisterClientOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.RegisterClientResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.RegisterClientResponse_authorizationEndpoint:
+			v.AuthorizationEndpoint = new(string)
+			return d.ReadString(schemas.RegisterClientResponse_authorizationEndpoint, v.AuthorizationEndpoint)
+		case schemas.RegisterClientResponse_clientId:
+			v.ClientId = new(string)
+			return d.ReadString(schemas.RegisterClientResponse_clientId, v.ClientId)
+		case schemas.RegisterClientResponse_clientIdIssuedAt:
+			return d.ReadInt64(schemas.RegisterClientResponse_clientIdIssuedAt, &v.ClientIdIssuedAt)
+		case schemas.RegisterClientResponse_clientSecret:
+			v.ClientSecret = new(string)
+			return d.ReadString(schemas.RegisterClientResponse_clientSecret, v.ClientSecret)
+		case schemas.RegisterClientResponse_clientSecretExpiresAt:
+			return d.ReadInt64(schemas.RegisterClientResponse_clientSecretExpiresAt, &v.ClientSecretExpiresAt)
+		case schemas.RegisterClientResponse_tokenEndpoint:
+			v.TokenEndpoint = new(string)
+			return d.ReadString(schemas.RegisterClientResponse_tokenEndpoint, v.TokenEndpoint)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationRegisterClientMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.RegisterClient, schemas.RegisterClientRequest, schemas.RegisterClientResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpRegisterClient{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.RegisterClient, schemas.RegisterClientRequest, schemas.RegisterClientResponse), output: &RegisterClientOutput{}}, middleware.After); err != nil {
 		return err
-	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpRegisterClient{}, middleware.After)
-	if err != nil {
-		return err
-	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "RegisterClient"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
+	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
-	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpRegisterClientValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opRegisterClient(options.Region), middleware.Before); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -177,25 +213,8 @@ func (c *Client) addOperationRegisterClientMiddlewares(stack *middleware.Stack, 
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newServiceMetadataMiddleware_opRegisterClient(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "RegisterClient",
-	}
 }

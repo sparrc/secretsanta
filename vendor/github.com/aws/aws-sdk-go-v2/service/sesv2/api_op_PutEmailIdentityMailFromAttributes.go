@@ -4,11 +4,10 @@ package sesv2
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/service/sesv2/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Used to enable or disable the custom Mail-From domain configuration for an
@@ -37,13 +36,13 @@ type PutEmailIdentityMailFromAttributesInput struct {
 	EmailIdentity *string
 
 	// The action to take if the required MX record isn't found when you send an
-	// email. When you set this value to UseDefaultValue , the mail is sent using
-	// amazonses.com as the MAIL FROM domain. When you set this value to RejectMessage
-	// , the Amazon SES API v2 returns a MailFromDomainNotVerified error, and doesn't
-	// attempt to deliver the email.
+	// email. When you set this value to USE_DEFAULT_VALUE , the mail is sent using
+	// amazonses.com as the MAIL FROM domain. When you set this value to REJECT_MESSAGE
+	// , the Amazon SES API v2 returns a MailFromDomainNotVerifiedException error, and
+	// doesn't attempt to deliver the email.
 	//
 	// These behaviors are taken when the custom MAIL FROM domain configuration is in
-	// the Pending , Failed , and TemporaryFailure states.
+	// the PENDING , FAILED , and TEMPORARY_FAILURE states.
 	BehaviorOnMxFailure types.BehaviorOnMxFailure
 
 	//  The custom MAIL FROM domain that you want the verified identity to use. The
@@ -60,6 +59,24 @@ type PutEmailIdentityMailFromAttributesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutEmailIdentityMailFromAttributesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutEmailIdentityMailFromAttributesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutEmailIdentityMailFromAttributesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.BehaviorOnMxFailure != "" {
+		s.WriteString(schemas.PutEmailIdentityMailFromAttributesRequest_BehaviorOnMxFailure, string(v.BehaviorOnMxFailure))
+	}
+	if v.EmailIdentity != nil {
+		s.WriteString(schemas.PutEmailIdentityMailFromAttributesRequest_EmailIdentity, *v.EmailIdentity)
+	}
+	if v.MailFromDomain != nil {
+		s.WriteString(schemas.PutEmailIdentityMailFromAttributesRequest_MailFromDomain, *v.MailFromDomain)
+	}
+}
+
 // An HTTP 200 response if the request succeeds, or an error message if the
 // request fails.
 type PutEmailIdentityMailFromAttributesOutput struct {
@@ -69,77 +86,42 @@ type PutEmailIdentityMailFromAttributesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutEmailIdentityMailFromAttributesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutEmailIdentityMailFromAttributesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutEmailIdentityMailFromAttributesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+}
+func (v *PutEmailIdentityMailFromAttributesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutEmailIdentityMailFromAttributesResponse, func(s *smithy.Schema) error {
+		switch s {
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutEmailIdentityMailFromAttributesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutEmailIdentityMailFromAttributes, schemas.PutEmailIdentityMailFromAttributesRequest, schemas.PutEmailIdentityMailFromAttributesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpPutEmailIdentityMailFromAttributes{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutEmailIdentityMailFromAttributes, schemas.PutEmailIdentityMailFromAttributesRequest, schemas.PutEmailIdentityMailFromAttributesResponse), output: &PutEmailIdentityMailFromAttributesOutput{}}, middleware.After); err != nil {
 		return err
-	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpPutEmailIdentityMailFromAttributes{}, middleware.After)
-	if err != nil {
-		return err
-	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "PutEmailIdentityMailFromAttributes"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
+	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
-	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutEmailIdentityMailFromAttributesValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPutEmailIdentityMailFromAttributes(options.Region), middleware.Before); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -154,25 +136,8 @@ func (c *Client) addOperationPutEmailIdentityMailFromAttributesMiddlewares(stack
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newServiceMetadataMiddleware_opPutEmailIdentityMailFromAttributes(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "PutEmailIdentityMailFromAttributes",
-	}
 }
